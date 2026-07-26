@@ -105,7 +105,7 @@ spec:
               (dict "name" "KAFKA_TRANSACTION_STATE_LOG_MIN_ISR" "value" (min 2 $replicas | toString))
               (dict "name" "KAFKA_LOG_RETENTION_HOURS" "value" (.Values.logRetentionHours | default 24 | toString))
               (dict "name" "JMX_PORT" "value" (.Values.service.jmxPort | toString))
-              (dict "name" "KAFKA_JMX_OPTS" "value" (printf "-javaagent:/opt/kafka/jmx/jmx_prometheus_javaagent-%s.jar=%d:/opt/kafka/jmx/jmx-exporter-config.yaml" .Values.jmx.exporterVersion .Values.service.metricsPort))
+              (dict "name" "KAFKA_JMX_OPTS" "value" (printf "-javaagent:/opt/kafka/jmx/jmx_prometheus_javaagent-%s.jar=%d:/opt/kafka/jmx/jmx-exporter-config.yaml" .Values.jmx.exporterVersion (int .Values.service.metricsPort)))
           -}}
           {{- include "kafka-native.containerEnv" (dict "ctx" $ "env" $defaultEnv) | nindent 10 }}
           resources:
