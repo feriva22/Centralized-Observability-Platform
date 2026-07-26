@@ -16,7 +16,7 @@ service:
 
 kafkaExporter:
   enabled: true
-  repository: danielqsj/kafka_exporter
+  repository: danielqsj/kafka-exporter
   tag: latest
   port: 9308
 
