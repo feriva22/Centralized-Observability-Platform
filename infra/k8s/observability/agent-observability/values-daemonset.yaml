@@ -8,7 +8,6 @@
 # =============================================================================
 otel-daemonset:
   mode: daemonset
-  hostNetwork: true
 
   # -- Image
   image:
@@ -205,19 +204,38 @@ otel-daemonset:
             enabled: true
 
       # -----------------------------------------------------------------------
-      # 5. prometheus — scrape ztunnel node-local (same node, no cross-network)
-      #    ztunnel runs as DaemonSet on every node → accessible via localhost:15020
-      #    This avoids kubernetes_sd_configs complexity in the Gateway.
+      # 5. prometheus — scrape ztunnel on same node using nodeName filter
+      #    ztunnel uses hostNetwork → __address__ resolves to node IP.
+      #    Relabel forces port 15020 (ztunnel metrics port).
       # -----------------------------------------------------------------------
       prometheus:
         config:
           scrape_configs:
-            - job_name: ztunnel
-              scrape_interval: 30s
-              metrics_path: /metrics
-              static_configs:
-                - targets:
-                    - localhost:15020
+            - job_name: istio-ztunnel-node
+              scrape_interval: 15s
+              kubernetes_sd_configs:
+                - role: pod
+                  selectors:
+                    - role: pod
+                      field: "spec.nodeName=${env:KUBE_NODE_NAME}"
+              relabel_configs:
+                # Keep only ztunnel pods
+                - source_labels: [__meta_kubernetes_pod_label_app]
+                  action: keep
+                  regex: ztunnel
+                # Point to ztunnel metrics port 15020
+                - source_labels: [__address__]
+                  action: replace
+                  regex: ([^:]+)(?::\d+)?
+                  replacement: $1:15020
+                  target_label: __address__
+                # Preserve useful k8s metadata
+                - action: labelmap
+                  regex: __meta_kubernetes_pod_label_(.+)
+                - source_labels: [__meta_kubernetes_pod_name]
+                  target_label: pod
+                - source_labels: [__meta_kubernetes_namespace]
+                  target_label: namespace
 
     processors:
       # -- Protect against OOM on node
@@ -326,7 +344,7 @@ otel-daemonset:
           processors: [memory_limiter, k8s_attributes, resource, batch]
           exporters: [debug]
 
-        # Metrics: host_metrics (node) + kubelet_stats (container/pod) + prometheus (ztunnel node-local) + OTLP from app pods → enrich → batch → gateway
+        # Metrics: host_metrics (node) + kubelet_stats (container/pod) + prometheus (ztunnel) + OTLP from app pods → enrich → batch → gateway
         metrics:
           receivers: [host_metrics, kubelet_stats, prometheus, otlp]
           processors: [memory_limiter, resource_detection, resource, batch]
