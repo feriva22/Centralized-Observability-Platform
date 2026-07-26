@@ -20,40 +20,6 @@ spec:
         app: kafka
     spec:
       terminationGracePeriodSeconds: 30
-      initContainers:
-        - name: init-kraft
-          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
-          command:
-            - /bin/bash
-            - -c
-            - |
-              # Derive node ID from pod ordinal
-              KAFKA_NODE_ID=${HOSTNAME##*-}
-              echo "Node ID: $KAFKA_NODE_ID"
-
-              # Format storage if not already formatted
-              STORAGE_DIR=/var/kafka/data
-              if [ ! -f "$STORAGE_DIR/meta.properties" ]; then
-                echo "Formatting KRaft storage..."
-                /opt/kafka/bin/kafka-storage.sh format \
-                  --config /etc/kafka/server.properties \
-                  --cluster-id $(cat /etc/kafka-cluster-id/CLUSTER_ID) \
-                  --node-id $KAFKA_NODE_ID \
-                  --ignore-formatted
-              fi
-          env:
-            - name: HOSTNAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: metadata.name
-          volumeMounts:
-            - name: kafka-data
-              mountPath: /var/kafka/data
-            - name: kafka-config
-              mountPath: /etc/kafka
-            - name: cluster-id
-              mountPath: /etc/kafka-cluster-id
-
       containers:
         - name: kafka
           image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -63,6 +29,18 @@ spec:
             - -c
             - |
               export KAFKA_NODE_ID=${HOSTNAME##*-}
+
+              # Format KRaft storage if not already formatted
+              STORAGE_DIR=/var/kafka/data
+              if [ ! -f "$STORAGE_DIR/meta.properties" ]; then
+                echo "Formatting KRaft storage for node $KAFKA_NODE_ID..."
+                /opt/kafka/bin/kafka-storage.sh format \
+                  --config /etc/kafka/server.properties \
+                  --cluster-id $(cat /etc/kafka-cluster-id/CLUSTER_ID) \
+                  --node-id $KAFKA_NODE_ID \
+                  --ignore-formatted
+              fi
+
               exec /opt/kafka/bin/kafka-server-start.sh /etc/kafka/server.properties \
                 --override node.id=$KAFKA_NODE_ID \
                 --override advertised.listeners=PLAINTEXT://$(HOSTNAME).kafka-headless.observability.svc.cluster.local:9092
