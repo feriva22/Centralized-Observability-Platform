@@ -18,6 +18,9 @@ resources:
 
 logRetentionHours: 168
 
+jmx:
+  enabled: true
+
 podDisruptionBudget:
   maxUnavailable: 1
 
