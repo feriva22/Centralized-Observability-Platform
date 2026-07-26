@@ -1,15 +1,14 @@
-environment: sandbox
+minio:
+  replicaCount: 1
 
-replicaCount: 1
+  persistence:
+    enabled: true
+    size: 10Gi
 
-persistence:
-  enabled: true
-  size: 10Gi
-
-resources:
-  requests:
-    cpu: 50m
-    memory: 128Mi
-  limits:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
       cpu: 200m
       memory: 256Mi

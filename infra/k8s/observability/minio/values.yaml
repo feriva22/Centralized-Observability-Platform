@@ -1,60 +1,55 @@
-namespace: observability
-environment: sandbox
+minio:
+  replicaCount: 1
 
-nameOverride: ""
-fullnameOverride: ""
+  auth:
+    rootUser: admin
+    rootPassword: ""
+    existingSecret: ""
+    existingSecretUserKey: user
+    existingSecretPasswordKey: password
 
-replicaCount: 1
+  defaultBuckets: "loki-chunks,tempo-traces,mimir-blocks,mimir-alertmanager,mimir-ruler"
 
-auth:
-  rootUser: admin
-  rootPassword: ""  # auto-generated if empty
-  existingSecret: ""
-  existingSecretUserKey: user
-  existingSecretPasswordKey: password
+  persistence:
+    enabled: true
+    storageClass: ""
+    size: 10Gi
+    accessModes:
+      - ReadWriteOnce
 
-defaultBuckets: "loki-chunks,tempo-traces,mimir-blocks,mimir-alertmanager,mimir-ruler"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
 
-persistence:
-  enabled: true
-  storageClass: ""
-  size: 10Gi
-  accessModes:
-    - ReadWriteOnce
+  service:
+    type: ClusterIP
+    port: 9000
+    consolePort: 9090
 
-resources:
-  requests:
-    cpu: 100m
-    memory: 256Mi
-  limits:
-    cpu: 500m
-    memory: 512Mi
+  config:
+    region: us-east-1
+    browserEnabled: true
 
-service:
-  type: ClusterIP
-  port: 9000
-  consolePort: 9090
+  ingress:
+    enabled: false
 
-config:
-  region: us-east-1
-  browserEnabled: true
+  consoleIngress:
+    enabled: false
 
-ingress:
-  enabled: false
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
 
-consoleIngress:
-  enabled: false
-
-livenessProbe:
-  enabled: true
-  initialDelaySeconds: 30
-  periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 3
-
-readinessProbe:
-  enabled: true
-  initialDelaySeconds: 5
-  periodSeconds: 5
-  timeoutSeconds: 3
-  failureThreshold: 3
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 3
