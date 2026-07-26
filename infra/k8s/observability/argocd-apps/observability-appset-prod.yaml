@@ -22,7 +22,7 @@ spec:
     spec:
       project: default
       source:
-        repoURL: https://github.com/your-org/infra
+        repoURL: https://github.com/feriva22/Centralized-Observability-Platform
         targetRevision: HEAD
         path: "infra/k8s/observability/{{component}}"
         helm:
