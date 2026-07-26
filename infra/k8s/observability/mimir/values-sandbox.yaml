@@ -46,7 +46,7 @@ mimir-distributed:
             endpoint: obs-minio.observability.svc.cluster.local:9000
             region: ap-southeast-3
             access_key_id: admin
-            secret_access_key: ""
+            secret_access_key: "eCEWI6JVf8uXZMuzs45LdooBfVp5p9Vj"
             path_style_force_enabled: true
       blocks_storage:
         s3:
@@ -73,5 +73,9 @@ mimir-distributed:
       ingest_storage:
         enabled: true
         kafka:
+          address: obs-sandbox-kafka.observability.svc.cluster.local:9092
+          topic: observability.metrics
+          auto_create_topic_enabled: true
+          auto_create_topic_default_partitions: 100
           producer_max_record_size_bytes: 15983616 # 20MB, adjust if you have larger samples or want to optimize for fewer/larger messages
 
