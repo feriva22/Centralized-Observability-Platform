@@ -1,22 +1,23 @@
 # Sandbox overrides — lightweight single node
-replicaCount: 1
+kafka:
+  replicaCount: 1
 
-heapOpts: "-Xmx256m -Xms128m"
+  heapOpts: "-Xmx256m -Xms128m"
 
-persistence:
-  enabled: true
-  size: 5Gi
+  persistence:
+    enabled: true
+    size: 5Gi
 
-resources:
-  requests:
-    cpu: 100m
-    memory: 256Mi
-  limits:
-    cpu: 500m
-    memory: 512Mi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
 
-kafkaConfig:
-  logRetentionHours: 24
+  kafkaConfig:
+    logRetentionHours: 24
 
-podDisruptionBudget:
-  enabled: false
+  podDisruptionBudget:
+    enabled: false

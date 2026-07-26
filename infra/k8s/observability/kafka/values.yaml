@@ -1,63 +1,64 @@
-replicaCount: 3
+kafka: 
+  replicaCount: 3
 
-image:
-  registry: docker.io
-  repository: apache/kafka
-  tag: "4.3.1@sha256:77e3df9054047a88b520d0cc46e16696d3b22022e1d580aeccd2632df6532837"
-  imagePullPolicy: IfNotPresent
+  image:
+    registry: docker.io
+    repository: apache/kafka
+    tag: "4.3.1@sha256:77e3df9054047a88b520d0cc46e16696d3b22022e1d580aeccd2632df6532837"
+    imagePullPolicy: IfNotPresent
 
-heapOpts: "-Xmx512m -Xms256m"
+  heapOpts: "-Xmx512m -Xms256m"
 
-persistence:
-  enabled: true
-  size: 20Gi
-  storageClass: ""
+  persistence:
+    enabled: true
+    size: 20Gi
+    storageClass: ""
 
-resources:
-  requests:
-    cpu: 250m
-    memory: 512Mi
-  limits:
-    cpu: 1000m
-    memory: 1Gi
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
 
-kafkaConfig:
-  numPartitions: 6
-  defaultReplicationFactor: 3
-  offsetsTopicReplicationFactor: 3
-  transactionStateLogReplicationFactor: 3
-  transactionStateLogMinIsr: 2
-  autoCreateTopicsEnable: true
-  logRetentionHours: 168
-  extraConfig:
-    - "min.insync.replicas=2"
-    - "log.segment.bytes=1073741824"
-    - "log.retention.check.interval.ms=300000"
+  kafkaConfig:
+    numPartitions: 6
+    defaultReplicationFactor: 3
+    offsetsTopicReplicationFactor: 3
+    transactionStateLogReplicationFactor: 3
+    transactionStateLogMinIsr: 2
+    autoCreateTopicsEnable: true
+    logRetentionHours: 168
+    extraConfig:
+      - "min.insync.replicas=2"
+      - "log.segment.bytes=1073741824"
+      - "log.retention.check.interval.ms=300000"
 
-# Disable auth for internal observability traffic
-auth:
-  client:
-    enabled: false
-  interBroker:
-    enabled: false
-  controller:
-    enabled: false
+  # Disable auth for internal observability traffic
+  auth:
+    client:
+      enabled: false
+    interBroker:
+      enabled: false
+    controller:
+      enabled: false
 
-tls:
-  enabled: false
-
-service:
-  type: ClusterIP
-
-logging:
-  consoleOnly: true
-  level: INFO
-
-metrics:
-  enabled: false
-  serviceMonitor:
+  tls:
     enabled: false
 
-podDisruptionBudget:
-  enabled: false
+  service:
+    type: ClusterIP
+
+  logging:
+    consoleOnly: true
+    level: INFO
+
+  metrics:
+    enabled: false
+    serviceMonitor:
+      enabled: false
+
+  podDisruptionBudget:
+    enabled: false
 
