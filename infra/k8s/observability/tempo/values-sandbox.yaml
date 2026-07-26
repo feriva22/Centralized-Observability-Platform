@@ -1,7 +1,16 @@
 environment: sandbox
 
-tempo:
-  replicas: 1
+tempo-distributed:
+  ingester:
+    replicas: 1
+  distributor:
+    replicas: 1
+  querier:
+    replicas: 1
+  queryFrontend:
+    replicas: 1
+  compactor:
+    replicas: 1
 
   resources:
     requests:

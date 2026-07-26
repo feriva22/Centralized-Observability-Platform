@@ -1,7 +1,16 @@
 environment: production
 
-tempo:
-  replicas: 3
+tempo-distributed:
+  ingester:
+    replicas: 3
+  distributor:
+    replicas: 2
+  querier:
+    replicas: 2
+  queryFrontend:
+    replicas: 2
+  compactor:
+    replicas: 1
 
   resources:
     requests:

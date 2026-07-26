@@ -1,7 +1,7 @@
 namespace: observability
 environment: sandbox
 
-tempo:
+tempo-distributed:
   tempo:
     reportingEnabled: false
     storage:
@@ -26,6 +26,17 @@ tempo:
         protocols:
           thrift_http:
             endpoint: "0.0.0.0:14268"
+
+  ingester:
+    replicas: 1
+  distributor:
+    replicas: 1
+  querier:
+    replicas: 1
+  queryFrontend:
+    replicas: 1
+  compactor:
+    replicas: 1
 
   resources:
     requests:

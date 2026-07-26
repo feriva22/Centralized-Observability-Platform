@@ -3,6 +3,6 @@ name: tempo
 description: Tempo distributed tracing
 version: 1.0.0
 dependencies:
-  - name: tempo
-    version: "2.2.3"
+  - name: tempo-distributed
+    version: "3.0.6"
     repository: https://grafana-community.github.io/helm-charts
