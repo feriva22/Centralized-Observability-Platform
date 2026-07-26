@@ -3,14 +3,18 @@ environment: sandbox
 
 replicaCount: 3
 
+clusterId: ""  # auto-generated on first run
+
 image:
+  registry: docker.io
   repository: apache/kafka
-  tag: "3.9.0"
-  pullPolicy: IfNotPresent
+  tag: 4.3.1
+  imagePullPolicy: IfNotPresent
 
-clusterIdSecretName: kafka-cluster-id
+heapOpts: "-Xmx512m -Xms256m"
 
-storage:
+persistence:
+  enabled: true
   size: 20Gi
   storageClass: ""
 
@@ -22,37 +26,46 @@ resources:
     cpu: 1000m
     memory: 1Gi
 
-jvm:
-  heapOpts: "-Xmx512m -Xms256m"
-  performanceOpts: "-XX:+UseG1GC -XX:MaxGCPauseMillis=20"
-
-kafka:
-  autoCreateTopics: false
+kafkaConfig:
+  numPartitions: 6
   defaultReplicationFactor: 3
-  minInsyncReplicas: 2
+  offsetsTopicReplicationFactor: 3
+  transactionStateLogReplicationFactor: 3
+  transactionStateLogMinIsr: 2
+  autoCreateTopicsEnable: true
   logRetentionHours: 168
-  logSegmentBytes: 1073741824
+  extraConfig:
+    - "min.insync.replicas=2"
+    - "log.segment.bytes=1073741824"
+    - "log.retention.check.interval.ms=300000"
 
-topics:
-  - name: observability.logs
-    partitions: 6
-    replicationFactor: 3
-    retentionMs: "604800000"
-  - name: observability.traces
-    partitions: 6
-    replicationFactor: 3
-    retentionMs: "604800000"
-  - name: observability.metrics
-    partitions: 6
-    replicationFactor: 3
-    retentionMs: "604800000"
+# Disable auth for internal observability traffic
+auth:
+  client:
+    enabled: false
+  interBroker:
+    enabled: false
+  controller:
+    enabled: false
 
-readinessProbe:
-  initialDelaySeconds: 30
-  periodSeconds: 10
-  failureThreshold: 3
+tls:
+  enabled: false
 
-livenessProbe:
-  initialDelaySeconds: 60
-  periodSeconds: 20
-  failureThreshold: 3
+service:
+  type: ClusterIP
+
+logging:
+  consoleOnly: true
+  level: INFO
+
+metrics:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+
+podDisruptionBudget:
+  enabled: false
+
+# Pre-created topics
+extraObjects: []
+

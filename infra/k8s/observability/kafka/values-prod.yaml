@@ -3,7 +3,10 @@ environment: production
 
 replicaCount: 3
 
-storage:
+heapOpts: "-Xmx1g -Xms512m"
+
+persistence:
+  enabled: true
   size: 100Gi
   storageClass: "fast-ssd"
 
@@ -15,27 +18,8 @@ resources:
     cpu: 2000m
     memory: 2Gi
 
-jvm:
-  heapOpts: "-Xmx1g -Xms512m"
-  performanceOpts: "-XX:+UseG1GC -XX:MaxGCPauseMillis=20 -XX:InitiatingHeapOccupancyPercent=35"
-
-kafka:
-  autoCreateTopics: false
-  defaultReplicationFactor: 3
-  minInsyncReplicas: 2
+kafkaConfig:
   logRetentionHours: 168
-  logSegmentBytes: 1073741824
 
-topics:
-  - name: observability.logs
-    partitions: 12
-    replicationFactor: 3
-    retentionMs: "604800000"
-  - name: observability.traces
-    partitions: 12
-    replicationFactor: 3
-    retentionMs: "604800000"
-  - name: observability.metrics
-    partitions: 12
-    replicationFactor: 3
-    retentionMs: "604800000"
+podDisruptionBudget:
+  enabled: true

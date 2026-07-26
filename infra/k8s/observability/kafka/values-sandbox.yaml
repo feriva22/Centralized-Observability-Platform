@@ -3,9 +3,11 @@ environment: sandbox
 
 replicaCount: 1
 
-storage:
+heapOpts: "-Xmx256m -Xms128m"
+
+persistence:
+  enabled: true
   size: 5Gi
-  storageClass: ""
 
 resources:
   requests:
@@ -15,27 +17,8 @@ resources:
     cpu: 500m
     memory: 512Mi
 
-jvm:
-  heapOpts: "-Xmx256m -Xms128m"
-  performanceOpts: "-XX:+UseG1GC"
-
-kafka:
-  autoCreateTopics: true
-  defaultReplicationFactor: 1
-  minInsyncReplicas: 1
+kafkaConfig:
   logRetentionHours: 24
-  logSegmentBytes: 536870912
 
-topics:
-  - name: observability.logs
-    partitions: 1
-    replicationFactor: 1
-    retentionMs: "86400000"
-  - name: observability.traces
-    partitions: 1
-    replicationFactor: 1
-    retentionMs: "86400000"
-  - name: observability.metrics
-    partitions: 1
-    replicationFactor: 1
-    retentionMs: "86400000"
+podDisruptionBudget:
+  enabled: false
