@@ -1,0 +1,65 @@
+namespace: observability
+environment: sandbox
+
+mimir-distributed:
+  mimir:
+    structuredConfig:
+      common:
+        storage:
+          backend: s3
+          s3:
+            endpoint: obs-minio.observability.svc.cluster.local:9000
+            region: us-east-1
+            access_key_id: admin
+            secret_access_key: ""
+            insecure: true
+            path_style_force_enabled: true
+      blocks_storage:
+        s3:
+          bucket_name: mimir-blocks
+      alertmanager_storage:
+        s3:
+          bucket_name: mimir-alertmanager
+      ruler_storage:
+        s3:
+          bucket_name: mimir-ruler
+
+  alertmanager:
+    enabled: true
+    replicas: 1
+
+  compactor:
+    replicas: 1
+
+  distributor:
+    replicas: 1
+
+  ingester:
+    replicas: 2
+    zoneAwareReplication:
+      enabled: false
+
+  querier:
+    replicas: 1
+
+  query_frontend:
+    replicas: 1
+
+  query_scheduler:
+    replicas: 1
+
+  ruler:
+    enabled: true
+    replicas: 1
+
+  store_gateway:
+    replicas: 1
+    zoneAwareReplication:
+      enabled: false
+
+  minio:
+    enabled: false
+
+  metaMonitoring:
+    serviceMonitor:
+      enabled: false

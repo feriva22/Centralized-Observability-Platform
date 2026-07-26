@@ -1,0 +1,66 @@
+namespace: observability
+environment: sandbox
+
+grafana:
+  adminUser: admin
+  adminPassword: ""
+
+  replicas: 1
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+
+  persistence:
+    enabled: true
+    size: 5Gi
+
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Loki
+          type: loki
+          url: http://obs-loki-gateway.observability.svc.cluster.local
+          access: proxy
+          isDefault: false
+
+        - name: Tempo
+          type: tempo
+          url: http://obs-tempo.observability.svc.cluster.local:3100
+          access: proxy
+          isDefault: false
+
+        - name: Mimir
+          type: prometheus
+          url: http://obs-mimir-nginx.observability.svc.cluster.local/prometheus
+          access: proxy
+          isDefault: true
+
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: default
+          orgId: 1
+          folder: ""
+          type: file
+          disableDeletion: false
+          editable: true
+          options:
+            path: /var/lib/grafana/dashboards/default
+
+  grafana.ini:
+    server:
+      root_url: ""
+    auth.anonymous:
+      enabled: false
+    analytics:
+      reporting_enabled: false
+
+  serviceMonitor:
+    enabled: false

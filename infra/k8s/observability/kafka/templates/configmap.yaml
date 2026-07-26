@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kafka-config
+  namespace: observability
+data:
+  server.properties: |
+    # KRaft mode — no Zookeeper
+    process.roles=broker,controller
+    {{- $replicas := int .Values.replicaCount }}
+    {{- $voters := list }}
+    {{- range $i := until $replicas }}
+    {{- $voters = append $voters (printf "%d@kafka-%d.kafka-headless.observability.svc.cluster.local:9093" $i $i) }}
+    {{- end }}
+    controller.quorum.voters={{ join "," $voters }}
+
+    # Listeners
+    listeners=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+    advertised.listeners=PLAINTEXT://${HOSTNAME}.kafka-headless.observability.svc.cluster.local:9092
+    inter.broker.listener.name=PLAINTEXT
+    controller.listener.names=CONTROLLER
+    listener.security.protocol.map=PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+
+    # Log
+    log.dirs=/var/kafka/data
+    num.partitions={{ len .Values.topics }}
+    default.replication.factor={{ .Values.kafka.defaultReplicationFactor }}
+    min.insync.replicas={{ .Values.kafka.minInsyncReplicas }}
+    auto.create.topics.enable={{ .Values.kafka.autoCreateTopics }}
+
+    # Offsets & transactions
+    offsets.topic.replication.factor={{ .Values.kafka.defaultReplicationFactor }}
+    transaction.state.log.replication.factor={{ .Values.kafka.defaultReplicationFactor }}
+    transaction.state.log.min.isr={{ .Values.kafka.minInsyncReplicas }}
+
+    # Retention
+    log.retention.hours={{ .Values.kafka.logRetentionHours }}
+    log.segment.bytes={{ .Values.kafka.logSegmentBytes }}
+    log.retention.check.interval.ms=300000

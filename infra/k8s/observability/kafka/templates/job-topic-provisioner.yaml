@@ -1,0 +1,58 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kafka-topic-provisioner
+  namespace: observability
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+spec:
+  backoffLimit: 5
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: kafka-topics
+          image: {{ .Values.image.repository }}:{{ .Values.image.tag }}
+          command:
+            - /bin/bash
+            - -c
+            - |
+              BOOTSTRAP=kafka.observability.svc.cluster.local:9092
+
+              create_topic() {
+                local name=$1
+                local partitions=$2
+                local replication=$3
+                local retention=$4
+
+                echo "Creating topic: $name"
+                /opt/kafka/bin/kafka-topics.sh \
+                  --bootstrap-server $BOOTSTRAP \
+                  --create \
+                  --if-not-exists \
+                  --topic $name \
+                  --partitions $partitions \
+                  --replication-factor $replication \
+                  --config retention.ms=$retention \
+                  --config cleanup.policy=delete
+              }
+
+              # Wait for Kafka to be ready
+              echo "Waiting for Kafka..."
+              until /opt/kafka/bin/kafka-topics.sh --bootstrap-server $BOOTSTRAP --list > /dev/null 2>&1; do
+                sleep 5
+              done
+              echo "Kafka is ready."
+              {{- range .Values.topics }}
+              create_topic {{ .name }} {{ .partitions }} {{ .replicationFactor }} {{ .retentionMs }}
+              {{- end }}
+
+              echo "All topics provisioned."
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi

@@ -1,0 +1,2 @@
+# Ignore tarballs from being double-packaged but keep charts/ for dependency resolution
+*.tgz.bak

@@ -1,0 +1,24 @@
+# Helm chart download artifacts
+charts/
+*.tgz
+
+# Environment-specific secrets (never commit)
+secrets/
+*.secret.yaml
+*-secret.yaml
+secret-*.yaml
+
+# Terraform state
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+*.swp
+*.swo

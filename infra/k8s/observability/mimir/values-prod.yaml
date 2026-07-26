@@ -1,0 +1,28 @@
+environment: production
+
+mimir-distributed:
+  ingester:
+    replicas: 3
+    zoneAwareReplication:
+      enabled: true
+
+  distributor:
+    replicas: 2
+
+  querier:
+    replicas: 2
+
+  store_gateway:
+    replicas: 3
+    zoneAwareReplication:
+      enabled: true
+
+  compactor:
+    replicas: 2
+
+  mimir:
+    structuredConfig:
+      common:
+        storage:
+          s3:
+            insecure: false

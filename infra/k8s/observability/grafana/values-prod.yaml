@@ -1,0 +1,23 @@
+environment: production
+
+grafana:
+  replicas: 2
+
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: "fast-ssd"
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  grafana.ini:
+    auth.anonymous:
+      enabled: false
+    server:
+      root_url: "https://grafana.your-domain.com"

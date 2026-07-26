@@ -1,0 +1,19 @@
+environment: sandbox
+
+loki:
+  deploymentMode: SingleBinary
+
+  singleBinary:
+    replicas: 1
+
+  loki:
+    commonConfig:
+      replication_factor: 1
+
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi

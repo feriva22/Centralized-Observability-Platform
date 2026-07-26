@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: observability-sandbox
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - component: minio
+          - component: kafka
+          - component: loki
+          - component: tempo
+          - component: mimir
+          - component: grafana
+  template:
+    metadata:
+      name: "obs-sandbox-{{component}}"
+      labels:
+        app.kubernetes.io/part-of: observability
+        environment: sandbox
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/your-org/infra
+        targetRevision: HEAD
+        path: "infra/k8s/observability/{{component}}"
+        helm:
+          valueFiles:
+            - values.yaml
+            - values-sandbox.yaml
+      destination:
+        server: https://kubernetes.default.svc   # sandbox cluster API
+        namespace: observability
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true

@@ -1,0 +1,58 @@
+namespace: observability
+environment: sandbox
+
+replicaCount: 3
+
+image:
+  repository: apache/kafka
+  tag: "3.9.0"
+  pullPolicy: IfNotPresent
+
+clusterIdSecretName: kafka-cluster-id
+
+storage:
+  size: 20Gi
+  storageClass: ""
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+jvm:
+  heapOpts: "-Xmx512m -Xms256m"
+  performanceOpts: "-XX:+UseG1GC -XX:MaxGCPauseMillis=20"
+
+kafka:
+  autoCreateTopics: false
+  defaultReplicationFactor: 3
+  minInsyncReplicas: 2
+  logRetentionHours: 168
+  logSegmentBytes: 1073741824
+
+topics:
+  - name: observability.logs
+    partitions: 6
+    replicationFactor: 3
+    retentionMs: "604800000"
+  - name: observability.traces
+    partitions: 6
+    replicationFactor: 3
+    retentionMs: "604800000"
+  - name: observability.metrics
+    partitions: 6
+    replicationFactor: 3
+    retentionMs: "604800000"
+
+readinessProbe:
+  initialDelaySeconds: 30
+  periodSeconds: 10
+  failureThreshold: 3
+
+livenessProbe:
+  initialDelaySeconds: 60
+  periodSeconds: 20
+  failureThreshold: 3

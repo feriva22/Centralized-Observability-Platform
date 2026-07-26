@@ -1,0 +1,40 @@
+namespace: observability
+environment: sandbox
+
+minio:
+  mode: standalone
+
+  auth:
+    rootUser: admin
+    rootPassword: ""  # fill in or reference a Secret
+
+  defaultBuckets: "loki-chunks,tempo-traces,mimir-blocks,mimir-alertmanager,mimir-ruler"
+
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: ""
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  service:
+    type: ClusterIP
+    ports:
+      api: 9000
+      console: 9001
+
+  ingress:
+    enabled: false
+
+  consoleIngress:
+    enabled: false
+
+  metrics:
+    serviceMonitor:
+      enabled: false

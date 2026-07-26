@@ -1,0 +1,57 @@
+# Production overrides
+argo-cd:
+  global:
+    domain: argocd.your-domain.com
+
+  configs:
+    params:
+      server.insecure: false
+
+  server:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 512Mi
+
+  controller:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 500m
+        memory: 512Mi
+      limits:
+        cpu: 2000m
+        memory: 1Gi
+
+  repoServer:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 512Mi
+
+  applicationSet:
+    replicas: 2
+    resources:
+      requests:
+        cpu: 200m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 512Mi
+
+  notifications:
+    enabled: true
+
+  dex:
+    enabled: false
+
+  redis-ha:
+    enabled: true

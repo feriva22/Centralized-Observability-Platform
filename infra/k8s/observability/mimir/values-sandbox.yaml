@@ -1,0 +1,28 @@
+environment: sandbox
+
+mimir-distributed:
+  ingester:
+    replicas: 1
+    zoneAwareReplication:
+      enabled: false
+
+  distributor:
+    replicas: 1
+
+  querier:
+    replicas: 1
+
+  store_gateway:
+    replicas: 1
+    zoneAwareReplication:
+      enabled: false
+
+  compactor:
+    replicas: 1
+
+  mimir:
+    structuredConfig:
+      common:
+        storage:
+          s3:
+            insecure: true

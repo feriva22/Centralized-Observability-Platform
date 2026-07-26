@@ -1,0 +1,5 @@
+apiVersion: v2
+name: kafka
+description: Apache Kafka in KRaft mode — plain Kubernetes manifests via Helm templates
+version: 1.0.0
+appVersion: "3.9.0"

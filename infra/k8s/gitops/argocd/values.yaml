@@ -1,0 +1,75 @@
+argo-cd:
+  global:
+    domain: argocd.your-domain.com
+
+  configs:
+    params:
+      server.insecure: true   # set false if terminating TLS at ArgoCD level
+
+    cm:
+      application.resourceTrackingMethod: annotation
+      resource.compareoptions: |
+        ignoreAggregatedRoles: true
+
+    rbac:
+      policy.default: role:readonly
+      policy.csv: |
+        p, role:admin, applications, *, */*, allow
+        p, role:admin, clusters, get, *, allow
+        p, role:admin, repositories, *, *, allow
+        g, argocd-admins, role:admin
+
+  server:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+
+  controller:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 512Mi
+
+  repoServer:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+
+  applicationSet:
+    replicas: 1
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 256Mi
+
+  notifications:
+    enabled: false
+
+  dex:
+    enabled: false
+
+  redis:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 200m
+        memory: 128Mi
