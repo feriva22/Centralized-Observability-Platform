@@ -72,9 +72,9 @@ mimir-distributed:
       ingest_storage:
         enabled: true
         kafka:
-          address: obs-sandbox-kafka.observability.svc.cluster.local:9092
+          address: kafka-native.observability.svc.cluster.local:9092
           topic: observability.metrics
           auto_create_topic_enabled: true
-          auto_create_topic_default_partitions: 100
+          auto_create_topic_default_partitions: 10
           producer_max_record_size_bytes: 15983616 # 20MB, adjust if you have larger samples or want to optimize for fewer/larger messages
 
