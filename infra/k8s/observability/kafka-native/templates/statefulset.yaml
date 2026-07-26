@@ -57,6 +57,11 @@ spec:
             - containerPort: 9093
               name: controller
               protocol: TCP
+            {{- if .Values.metrics.enabled }}
+            - containerPort: {{ .Values.service.metricsPort }}
+              name: metrics
+              protocol: TCP
+            {{- end }}
           {{- $kafkaName     := include "kafka-native.fullname" . -}}
           {{- $clusterDomain := "cluster.local" -}}
           {{- if and .Values.global .Values.global.clusterDomain -}}
@@ -82,6 +87,8 @@ spec:
               (dict "name" "KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR" "value" (min 3 $replicas | toString))
               (dict "name" "KAFKA_TRANSACTION_STATE_LOG_MIN_ISR" "value" (min 2 $replicas | toString))
               (dict "name" "KAFKA_LOG_RETENTION_HOURS" "value" (.Values.logRetentionHours | default 24 | toString))
+              (dict "name" "KAFKA_PROMETHEUS_METRICS_ENABLED" "value" (.Values.metrics.enabled | toString))
+              (dict "name" "KAFKA_PROMETHEUS_METRICS_PORT" "value" (.Values.service.metricsPort | toString))
           -}}
           {{- include "kafka-native.containerEnv" (dict "ctx" $ "env" $defaultEnv) | nindent 10 }}
           resources:

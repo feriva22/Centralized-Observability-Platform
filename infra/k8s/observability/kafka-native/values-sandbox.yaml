@@ -18,6 +18,9 @@ resources:
 
 logRetentionHours: 24
 
+metrics:
+  enabled: true
+
 podDisruptionBudget:
   maxUnavailable: 1
 
@@ -27,4 +30,7 @@ affinity: {}
 
 priorityClassName: null
 podLabels: {}
-podAnnotations: {}
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "9404"
+  prometheus.io/path: /metrics

@@ -9,6 +9,9 @@ metadata:
     {{- end }}
   annotations:
     {{- toYaml .Values.service.annotations | nindent 4 }}
+    {{- if and .Values.metrics.enabled .Values.metrics.annotations }}
+    {{- toYaml .Values.metrics.annotations | nindent 4 }}
+    {{- end }}
   namespace: {{ .Release.Namespace | quote }}
 spec:
   type: {{ .Values.service.type }}
@@ -17,5 +20,11 @@ spec:
       protocol: TCP
       name: kafka
       targetPort: kafka
+    {{- if .Values.metrics.enabled }}
+    - port: {{ .Values.service.metricsPort }}
+      protocol: TCP
+      name: metrics
+      targetPort: metrics
+    {{- end }}
   selector:
     {{- include "kafka-native.selectorLabels" . | nindent 4 }}

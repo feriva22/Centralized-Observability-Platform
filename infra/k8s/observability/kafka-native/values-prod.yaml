@@ -40,8 +40,12 @@ affinity:
           topologyKey: kubernetes.io/hostname
 
 priorityClassName: high-priority
+metrics:
+  enabled: true
+
 podLabels:
   app.kubernetes.io/component: kafka-broker
 podAnnotations:
   prometheus.io/scrape: "true"
-  prometheus.io/port: "9092"
+  prometheus.io/port: "9404"
+  prometheus.io/path: /metrics

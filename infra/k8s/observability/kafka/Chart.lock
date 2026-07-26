@@ -1,6 +1,0 @@
-dependencies:
-- name: kafka
-  repository: oci://registry-1.docker.io/cloudpirates
-  version: 0.1.1
-digest: sha256:18e14bc6fc1b4158c92d9e0600643b28ab4efbad759383056b2a8041ecf2512a
-generated: "2026-07-26T14:07:22.4213037+07:00"

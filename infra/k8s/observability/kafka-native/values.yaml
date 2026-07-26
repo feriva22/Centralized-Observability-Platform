@@ -9,9 +9,19 @@ image:
 service:
   port: 9092
   controllerPort: 9093
+  metricsPort: 9404
   type: ClusterIP
   annotations: {}
   labels: {}
+
+metrics:
+  enabled: true
+  port: 9404
+  path: /metrics
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9404"
+    prometheus.io/path: /metrics
 
 persistence:
   enabled: true

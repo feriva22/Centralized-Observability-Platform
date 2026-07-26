@@ -8,7 +8,7 @@ spec:
     - list:
         elements:
           - component: minio
-          - component: kafka
+          - component: kafka-native
           - component: loki
           - component: tempo
           - component: mimir
