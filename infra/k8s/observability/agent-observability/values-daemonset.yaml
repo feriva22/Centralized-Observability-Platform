@@ -308,7 +308,7 @@ otel-daemonset:
         logs:
           receivers: [file_log, otlp]
           processors: [memory_limiter, k8s_attributes, resource, batch]
-          exporters: [otlp_grpc/gateway, debug]
+          exporters: [debug]
 
         # Metrics: host_metrics (node) + kubelet_stats (container/pod) + OTLP from app pods → enrich → batch → gateway
         metrics:
@@ -320,7 +320,7 @@ otel-daemonset:
         traces:
           receivers: [otlp]
           processors: [memory_limiter, k8s_attributes, resource, batch]
-          exporters: [otlp_grpc/gateway, debug]
+          exporters: [debug]
 
   # -- Expose KUBE_NODE_NAME and KUBE_NODE_IP env vars for k8sattributes + kubeletstats
   extraEnvs:
