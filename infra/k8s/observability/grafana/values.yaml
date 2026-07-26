@@ -3,7 +3,7 @@ environment: sandbox
 
 grafana:
   adminUser: admin
-  adminPassword: ""
+  adminPassword: "testing123"
 
   replicas: 1
 
