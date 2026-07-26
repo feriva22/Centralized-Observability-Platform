@@ -284,7 +284,7 @@ otel-daemonset:
       # Service name: otel-gateway (resolves via ClusterIP service)
       # -----------------------------------------------------------------------
       otlp_grpc/gateway:
-        endpoint: "otel-gateway.observability.svc.cluster.local:4317"
+        endpoint: "agent-monitoring-otel-gateway.observability.svc.cluster.local:4317"
         tls:
           insecure: true
         sending_queue:
