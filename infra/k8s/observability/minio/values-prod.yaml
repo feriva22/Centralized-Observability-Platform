@@ -1,18 +1,16 @@
 environment: production
 
-minio:
-  mode: distributed
-  replicas: 4
+replicaCount: 4
 
-  persistence:
-    enabled: true
-    size: 200Gi
-    storageClass: "fast-ssd"
+persistence:
+  enabled: true
+  size: 200Gi
+  storageClass: "fast-ssd"
 
-  resources:
-    requests:
-      cpu: 250m
-      memory: 512Mi
-    limits:
-      cpu: 1000m
-      memory: 1Gi
+resources:
+  requests:
+    cpu: 250m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi

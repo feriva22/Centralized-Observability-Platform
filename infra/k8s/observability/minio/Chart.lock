@@ -1,0 +1,6 @@
+dependencies:
+- name: minio
+  repository: oci://registry-1.docker.io/cloudpirates
+  version: 0.13.0
+digest: sha256:867a17eb34fa6a2575bd0046a139621a1cd5e5ff470eacf6d93019db14f76c5c
+generated: "2026-07-26T13:40:07.6724247+07:00"
