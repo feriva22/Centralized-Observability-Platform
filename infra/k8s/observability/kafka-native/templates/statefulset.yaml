@@ -46,6 +46,20 @@ spec:
       dnsConfig:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if .Values.jmx.enabled }}
+      initContainers:
+        - name: jmx-exporter-download
+          image: curlimages/curl:8.12.0
+          command:
+            - curl
+            - -sSfL
+            - -o
+            - /opt/jmx/jmx_prometheus_javaagent-{{ .Values.jmx.exporterVersion }}.jar
+            - https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/{{ .Values.jmx.exporterVersion }}/jmx_prometheus_javaagent-{{ .Values.jmx.exporterVersion }}.jar
+          volumeMounts:
+            - name: kafka-jmx
+              mountPath: /opt/jmx
+      {{- end }}
       containers:
         - name: kafka
           image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -113,17 +127,24 @@ spec:
             failureThreshold: 3
         {{- if .Values.jmx.enabled }}
         - name: jmx-exporter
-          image: {{ .Values.jmx.exporterImage }}:{{ .Values.jmx.exporterVersion }}
+          image: eclipse-temurin:21-jre
           args:
+            - -jar
+            - /opt/jmx/jmx_prometheus_javaagent-{{ .Values.jmx.exporterVersion }}.jar
             - "{{ .Values.service.metricsPort }}"
-            - /etc/jmx-exporter/jmx-exporter-config.yaml
+            - /opt/jmx/jmx-exporter-config.yaml
           ports:
             - containerPort: {{ .Values.service.metricsPort }}
               name: metrics
               protocol: TCP
           volumeMounts:
+            - name: kafka-jmx
+              mountPath: /opt/jmx
             - name: jmx-exporter-config
-              mountPath: /etc/jmx-exporter
+              mountPath: /opt/jmx/jmx-exporter-config.yaml
+              subPath: jmx-exporter-config.yaml
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: 50m
@@ -146,6 +167,8 @@ spec:
         - name: tmp
           emptyDir: {}
         {{- if .Values.jmx.enabled }}
+        - name: kafka-jmx
+          emptyDir: {}
         - name: jmx-exporter-config
           configMap:
             name: {{ include "kafka-native.fullname" . }}-jmx-exporter

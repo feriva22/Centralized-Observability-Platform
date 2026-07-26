@@ -19,7 +19,6 @@ jmx:
   enabled: true
   port: 9999
   exporterPort: 9404
-  exporterImage: prom/jmx-exporter
   exporterVersion: "1.0.1"
   config:
     # Kafka JMX exporter rules — scrape common broker MBeans
