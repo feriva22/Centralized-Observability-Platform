@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kafka-native.fullname" . }}
+  labels:
+    {{- include "kafka-native.labels" . | nindent 4 }}
+    {{- with .Values.service.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- toYaml .Values.service.annotations | nindent 4 }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      protocol: TCP
+      name: kafka
+      targetPort: kafka
+  selector:
+    {{- include "kafka-native.selectorLabels" . | nindent 4 }}

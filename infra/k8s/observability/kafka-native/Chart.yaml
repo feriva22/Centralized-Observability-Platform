@@ -1,0 +1,6 @@
+apiVersion: v2
+name: kafka-native
+description: Apache Kafka-native KRaft cluster for LGTM ingest storage
+type: application
+version: 0.1.0
+appVersion: 4.1.0

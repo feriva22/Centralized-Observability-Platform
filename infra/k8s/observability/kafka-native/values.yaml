@@ -1,0 +1,59 @@
+replicas: 1
+
+image:
+  registry: docker.io
+  repository: apache/kafka-native
+  tag: 4.1.0
+  pullPolicy: IfNotPresent
+
+service:
+  port: 9092
+  controllerPort: 9093
+  type: ClusterIP
+  annotations: {}
+  labels: {}
+
+persistence:
+  enabled: true
+  size: 20Gi
+  storageClassName: ""
+
+resources:
+  requests:
+    cpu: 2
+    memory: 2Gi
+  limits: {}
+
+dnsConfig: {}
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+podDisruptionBudget:
+  maxUnavailable: 1
+
+priorityClassName: null
+podLabels: {}
+podAnnotations: {}
+
+securityContext:
+  fsGroup: 1001
+  runAsGroup: 1001
+  runAsNonRoot: true
+  runAsUser: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+containerSecurityContext:
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: [ALL]
+  allowPrivilegeEscalation: false
+
+terminationGracePeriodSeconds: 30
+logRetentionHours: 72
+
+env: []
+extraEnvFrom: []
+extraVolumes: []
+extraVolumeMounts: []

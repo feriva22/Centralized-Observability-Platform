@@ -1,0 +1,47 @@
+# Production overrides — high availability
+environment: production
+
+replicas: 3
+
+persistence:
+  enabled: true
+  size: 100Gi
+  storageClassName: "fast-ssd"
+
+resources:
+  requests:
+    cpu: 2
+    memory: 4Gi
+  limits:
+    cpu: 4
+    memory: 8Gi
+
+logRetentionHours: 168
+
+podDisruptionBudget:
+  maxUnavailable: 1
+
+nodeSelector:
+  node-type: kafka-worker
+
+tolerations:
+  - key: "kafka"
+    operator: "Exists"
+    effect: "NoSchedule"
+
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: kafka-native
+          topologyKey: kubernetes.io/hostname
+
+priorityClassName: high-priority
+podLabels:
+  app.kubernetes.io/component: kafka-broker
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "9092"

@@ -1,0 +1,30 @@
+# Sandbox overrides — lightweight single node
+environment: sandbox
+
+replicas: 1
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClassName: ""
+
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+  limits:
+    cpu: 1000m
+    memory: 1Gi
+
+logRetentionHours: 24
+
+podDisruptionBudget:
+  maxUnavailable: 1
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+priorityClassName: null
+podLabels: {}
+podAnnotations: {}
