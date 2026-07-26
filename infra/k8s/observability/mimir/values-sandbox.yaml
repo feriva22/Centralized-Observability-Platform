@@ -27,6 +27,7 @@ mimir-distributed:
     overrides:
       INFRA:
         compactor_blocks_retention_period: 48h  # 30 days
+        max_label_names_per_series: 60
       # Add more tenants as needed:
       # <tenant-id>:
       #   compactor_blocks_retention_period: 168h  # 7 days
