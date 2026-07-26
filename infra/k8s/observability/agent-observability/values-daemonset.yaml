@@ -203,6 +203,21 @@ otel-daemonset:
           k8s.node.uptime:
             enabled: true
 
+      # -----------------------------------------------------------------------
+      # 5. prometheus — scrape ztunnel node-local (same node, no cross-network)
+      #    ztunnel runs as DaemonSet on every node → accessible via localhost:15020
+      #    This avoids kubernetes_sd_configs complexity in the Gateway.
+      # -----------------------------------------------------------------------
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: ztunnel
+              scrape_interval: 30s
+              metrics_path: /metrics
+              static_configs:
+                - targets:
+                    - localhost:15020
+
     processors:
       # -- Protect against OOM on node
       memory_limiter:
@@ -310,9 +325,9 @@ otel-daemonset:
           processors: [memory_limiter, k8s_attributes, resource, batch]
           exporters: [debug]
 
-        # Metrics: host_metrics (node) + kubelet_stats (container/pod) + OTLP from app pods → enrich → batch → gateway
+        # Metrics: host_metrics (node) + kubelet_stats (container/pod) + prometheus (ztunnel node-local) + OTLP from app pods → enrich → batch → gateway
         metrics:
-          receivers: [host_metrics, kubelet_stats, otlp]
+          receivers: [host_metrics, kubelet_stats, prometheus, otlp]
           processors: [memory_limiter, resource_detection, resource, batch]
           exporters: [otlp_grpc/gateway, debug]
 
