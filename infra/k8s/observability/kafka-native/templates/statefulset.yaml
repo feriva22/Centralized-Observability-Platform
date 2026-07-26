@@ -46,20 +46,6 @@ spec:
       dnsConfig:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.jmx.enabled }}
-      initContainers:
-        - name: jmx-exporter-download
-          image: curlimages/curl:8.12.0
-          command:
-            - curl
-            - -sSfL
-            - -o
-            - /opt/kafka/jmx/jmx_prometheus_javaagent-{{ .Values.jmx.exporterVersion }}.jar
-            - https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/{{ .Values.jmx.exporterVersion }}/jmx_prometheus_javaagent-{{ .Values.jmx.exporterVersion }}.jar
-          volumeMounts:
-            - name: kafka-jmx
-              mountPath: /opt/kafka/jmx
-      {{- end }}
       containers:
         - name: kafka
           image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
@@ -74,9 +60,6 @@ spec:
             {{- if .Values.jmx.enabled }}
             - containerPort: {{ .Values.service.jmxPort }}
               name: jmx
-              protocol: TCP
-            - containerPort: {{ .Values.service.metricsPort }}
-              name: metrics
               protocol: TCP
             {{- end }}
           {{- $kafkaName     := include "kafka-native.fullname" . -}}
@@ -105,7 +88,6 @@ spec:
               (dict "name" "KAFKA_TRANSACTION_STATE_LOG_MIN_ISR" "value" (min 2 $replicas | toString))
               (dict "name" "KAFKA_LOG_RETENTION_HOURS" "value" (.Values.logRetentionHours | default 24 | toString))
               (dict "name" "JMX_PORT" "value" (.Values.service.jmxPort | toString))
-              (dict "name" "KAFKA_JMX_OPTS" "value" (printf "-javaagent:/opt/kafka/jmx/jmx_prometheus_javaagent-%s.jar=%d:/opt/kafka/jmx/jmx-exporter-config.yaml" .Values.jmx.exporterVersion (int .Values.service.metricsPort)))
           -}}
           {{- include "kafka-native.containerEnv" (dict "ctx" $ "env" $defaultEnv) | nindent 10 }}
           resources:
@@ -119,13 +101,6 @@ spec:
               mountPath: /opt/kafka/config
             - name: tmp
               mountPath: /tmp
-            {{- if .Values.jmx.enabled }}
-            - name: kafka-jmx
-              mountPath: /opt/kafka/jmx
-            - name: jmx-exporter-config
-              mountPath: /opt/kafka/jmx/jmx-exporter-config.yaml
-              subPath: jmx-exporter-config.yaml
-            {{- end }}
             {{- with .Values.extraVolumeMounts }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -136,14 +111,41 @@ spec:
             periodSeconds: 5
             timeoutSeconds: 5
             failureThreshold: 3
+        {{- if .Values.jmx.enabled }}
+        - name: jmx-exporter
+          image: {{ .Values.jmx.exporterImage }}:{{ .Values.jmx.exporterVersion }}
+          args:
+            - "{{ .Values.service.metricsPort }}"
+            - /etc/jmx-exporter/jmx-exporter-config.yaml
+          ports:
+            - containerPort: {{ .Values.service.metricsPort }}
+              name: metrics
+              protocol: TCP
+          volumeMounts:
+            - name: jmx-exporter-config
+              mountPath: /etc/jmx-exporter
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          securityContext:
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1001
+            runAsGroup: 1001
+            capabilities:
+              drop: [ALL]
+            allowPrivilegeEscalation: false
+        {{- end }}
       volumes:
         - name: kafka-config
           emptyDir: {}
         - name: tmp
           emptyDir: {}
         {{- if .Values.jmx.enabled }}
-        - name: kafka-jmx
-          emptyDir: {}
         - name: jmx-exporter-config
           configMap:
             name: {{ include "kafka-native.fullname" . }}-jmx-exporter
