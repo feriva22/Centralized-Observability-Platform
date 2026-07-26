@@ -1,6 +1,4 @@
 # Sandbox overrides — lightweight single node
-environment: sandbox
-
 replicaCount: 1
 
 heapOpts: "-Xmx256m -Xms128m"

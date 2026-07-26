@@ -1,6 +1,4 @@
 # Production overrides — high availability
-environment: production
-
 replicaCount: 3
 
 heapOpts: "-Xmx1g -Xms512m"
