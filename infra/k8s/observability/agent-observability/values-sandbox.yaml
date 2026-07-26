@@ -78,6 +78,43 @@ otel-gateway:
                 - targets:
                     - istiod.istio-system.svc.cluster.local:15014
 
+            # --- ztunnel (ambient mesh L4 proxy) ---
+            # Discovers all ztunnel DaemonSet pods via kubernetes pod discovery.
+            # ztunnel exposes tcp_*, ztunnel_*, dns_* metrics on port 15020/metrics.
+            # NOTE: ambient mesh WITHOUT waypoints does NOT produce istio_requests_total.
+            - job_name: ztunnel
+              scrape_interval: 30s
+              metrics_path: /metrics
+              kubernetes_sd_configs:
+                - role: pod
+              relabel_configs:
+                - source_labels: [__meta_kubernetes_pod_label_app]
+                  regex: ztunnel
+                  action: keep
+                - source_labels: [__meta_kubernetes_pod_container_port_number]
+                  regex: "15020"
+                  action: keep
+
+            # --- waypoint proxies (ambient mesh L7 Envoy proxy, if any) ---
+            # Only active for namespaces with waypoint injection
+            # Produces istio_requests_total, istio_request_duration_milliseconds, etc.
+            - job_name: waypoint
+              scrape_interval: 30s
+              metrics_path: /stats/prometheus
+              kubernetes_sd_configs:
+                - role: pod
+                  selectors:
+                    - role: pod
+                      label: gateway.networking.k8s.io/waypoint=*
+                      field: status.phase=Running
+              relabel_configs:
+                - source_labels: [__meta_kubernetes_pod_label_gateway_networking_k8s_io_waypoint]
+                  regex: ".+"
+                  action: keep
+                - source_labels: [__meta_kubernetes_pod_container_port_number]
+                  regex: "15090"
+                  action: keep
+
     service:
       pipelines:
         metrics:
