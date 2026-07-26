@@ -4,5 +4,5 @@ description: Loki log aggregation
 version: 1.0.0
 dependencies:
   - name: loki
-    version: "6.30.1"
-    repository: https://grafana.github.io/helm-charts
+    version: "17.4.0"
+    repository: https://grafana-community.github.io/helm-charts

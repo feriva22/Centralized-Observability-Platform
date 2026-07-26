@@ -4,5 +4,5 @@ description: MinIO S3-compatible object storage
 version: 1.0.0
 dependencies:
   - name: minio
-    version: "14.8.5"
-    repository: https://charts.bitnami.com/bitnami
+    version: "8.0.10"
+    repository: https://helm.min.io/
