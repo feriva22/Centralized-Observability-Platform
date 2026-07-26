@@ -2,6 +2,8 @@ namespace: observability
 environment: sandbox
 
 mimir-distributed:
+  image:
+    tag: "3.1.4"
   mimir:
     structuredConfig:
       common:
