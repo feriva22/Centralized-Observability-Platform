@@ -71,6 +71,13 @@ otel-gateway:
                 - targets:
                     - kafka-native.observability.svc.cluster.local:9308
 
+            # --- Istio control plane (istiod) ---
+            - job_name: istiod
+              scrape_interval: 30s
+              static_configs:
+                - targets:
+                    - istiod.istio-system.svc.cluster.local:15014
+
     service:
       pipelines:
         metrics:

@@ -20,6 +20,17 @@ mimir-distributed:
   compactor:
     replicas: 1
 
+  # -- Reloadable runtime configuration (per-tenant overrides).
+  #    Mimir reloads this every ~10s without restart.
+  #    https://grafana.com/docs/mimir/latest/configure/about-runtime-configuration/
+  runtimeConfig:
+    overrides:
+      INFRA:
+        compactor_blocks_retention_period: 48h  # 30 days
+      # Add more tenants as needed:
+      # <tenant-id>:
+      #   compactor_blocks_retention_period: 168h  # 7 days
+
   # Disable all extra caches to save cost/complexity unless query speed is slow
   chunks-cache: { enabled: false }
   index-cache: { enabled: false }
