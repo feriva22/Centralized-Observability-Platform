@@ -33,8 +33,5 @@ spec:
         server: https://prod-cluster-api.your-domain.com   # prod cluster API
         namespace: observability
       syncPolicy:
-        automated:
-          prune: false   # manual prune on prod for safety
-          selfHeal: true
         syncOptions:
           - CreateNamespace=true
