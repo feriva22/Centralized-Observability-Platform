@@ -1,6 +1,6 @@
-# Helm chart download artifacts
-charts/
-*.tgz
+# Helm chart download artifacts — allow component charts/ for ArgoCD
+# charts/ at root is still ignored
+*.tgz.bak
 
 # Environment-specific secrets (never commit)
 secrets/
