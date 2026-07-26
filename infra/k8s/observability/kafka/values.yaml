@@ -9,6 +9,10 @@ kafka:
 
   heapOpts: "-Xmx512m -Xms256m"
 
+  extraEnvVars:
+    - name: KAFKA_OPTS
+      value: "-Dorg.xerial.snappy.use.systemlib=false -Dorg.xerial.snappy.tempdir=/tmp"
+
   persistence:
     enabled: true
     size: 20Gi
