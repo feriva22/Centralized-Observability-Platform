@@ -37,7 +37,7 @@ spec:
                 echo "Formatting KRaft storage..."
                 /opt/kafka/bin/kafka-storage.sh format \
                   --config /etc/kafka/server.properties \
-                  --cluster-id $(cat /etc/kafka/cluster-id/CLUSTER_ID) \
+                  --cluster-id $(cat /etc/kafka-cluster-id/CLUSTER_ID) \
                   --node-id $KAFKA_NODE_ID \
                   --ignore-formatted
               fi
@@ -52,7 +52,7 @@ spec:
             - name: kafka-config
               mountPath: /etc/kafka
             - name: cluster-id
-              mountPath: /etc/kafka/cluster-id
+              mountPath: /etc/kafka-cluster-id
 
       containers:
         - name: kafka
@@ -86,7 +86,7 @@ spec:
             - name: kafka-config
               mountPath: /etc/kafka
             - name: cluster-id
-              mountPath: /etc/kafka/cluster-id
+              mountPath: /etc/kafka-cluster-id
           resources:
             requests:
               cpu: {{ .Values.resources.requests.cpu }}
