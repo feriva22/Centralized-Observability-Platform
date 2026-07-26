@@ -8,6 +8,7 @@
 # =============================================================================
 otel-daemonset:
   mode: daemonset
+  hostNetwork: true
 
   # -- Image
   image:
@@ -216,7 +217,7 @@ otel-daemonset:
               metrics_path: /metrics
               static_configs:
                 - targets:
-                    - ${env:KUBE_NODE_IP}:15020
+                    - localhost:15020
 
     processors:
       # -- Protect against OOM on node
