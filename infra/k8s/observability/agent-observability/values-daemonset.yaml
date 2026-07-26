@@ -229,13 +229,6 @@ otel-daemonset:
                   regex: ([^:]+)(?::\d+)?
                   replacement: $1:15020
                   target_label: __address__
-                # Preserve useful k8s metadata
-                - action: labelmap
-                  regex: __meta_kubernetes_pod_label_(.+)
-                - source_labels: [__meta_kubernetes_pod_name]
-                  target_label: pod
-                - source_labels: [__meta_kubernetes_namespace]
-                  target_label: namespace
 
     processors:
       # -- Protect against OOM on node
