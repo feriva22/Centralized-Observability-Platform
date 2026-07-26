@@ -47,7 +47,6 @@ mimir-distributed:
             region: ap-southeast-3
             access_key_id: admin
             secret_access_key: "eCEWI6JVf8uXZMuzs45LdooBfVp5p9Vj"
-            path_style_force_enabled: true
       blocks_storage:
         s3:
           bucket_name: observability-k8s
