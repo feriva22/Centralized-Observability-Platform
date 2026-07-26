@@ -31,6 +31,7 @@ mimir-distributed:
           topic: observability.metrics
           auto_create_topic_enabled: true
           auto_create_topic_default_partitions: 100
+          producer_compression: gzip #apache/kafka image not support load snappy native library, so we need to use gzip compression instead of snappy
 
       ingester:
         push_grpc_method_enabled: false
