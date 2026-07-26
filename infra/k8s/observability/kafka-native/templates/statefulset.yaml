@@ -49,10 +49,11 @@ spec:
       {{- if .Values.jmx.enabled }}
       initContainers:
         - name: jmx-exporter-download
-          image: busybox:1.36
+          image: curlimages/curl:8.12.0
           command:
-            - wget
-            - -O
+            - curl
+            - -sSfL
+            - -o
             - /opt/kafka/jmx/jmx_prometheus_javaagent-{{ .Values.jmx.exporterVersion }}.jar
             - https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/{{ .Values.jmx.exporterVersion }}/jmx_prometheus_javaagent-{{ .Values.jmx.exporterVersion }}.jar
           volumeMounts:

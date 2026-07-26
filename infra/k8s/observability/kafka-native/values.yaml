@@ -19,7 +19,7 @@ jmx:
   enabled: true
   port: 9999
   exporterPort: 9404
-  exporterVersion: "1.1.0"
+  exporterVersion: "1.0.1"
   config:
     # Kafka JMX exporter rules — scrape common broker MBeans
     startDelaySeconds: 10
