@@ -58,9 +58,6 @@ spec:
           volumeMounts:
             - name: kafka-jmx
               mountPath: /opt/kafka/jmx
-          securityContext:
-            runAsUser: 0
-            runAsGroup: 0
       {{- end }}
       containers:
         - name: kafka
