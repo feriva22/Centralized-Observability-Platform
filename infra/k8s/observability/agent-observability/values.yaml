@@ -300,13 +300,13 @@ otel-gateway:
         logs:
           receivers: [otlp]
           processors: [memory_limiter, k8s_attributes, resource, batch]
-          exporters: [otlp_http/loki, debug]
+          exporters: [debug]
 
         # Traces → Tempo via otlp_http
         traces:
           receivers: [otlp]
           processors: [memory_limiter, k8s_attributes, resource, batch]
-          exporters: [otlp_http/tempo, debug]
+          exporters: [debug]
 
 # =============================================================================
 # OTel-native coverage map (no Prometheus exporters needed):
