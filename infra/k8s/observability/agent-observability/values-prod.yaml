@@ -1,0 +1,77 @@
+# =============================================================================
+# Production overrides — LGTM component scraping via OTel Prometheus receiver
+# Ditambahkan ke base values.yaml untuk mengumpulkan metrik operasional
+# dari komponen LGTM stack itu sendiri (Mimir, Tempo, Loki, Grafana, dll)
+# =============================================================================
+environment: production
+
+otel-gateway:
+  config:
+    receivers:
+      # -----------------------------------------------------------------------
+      # Prometheus receiver — scrape endpoint /metrics tiap komponen LGTM
+      # Menggantikan peran ServiceMonitor tanpa perlu Prometheus Operator
+      # -----------------------------------------------------------------------
+      prometheus:
+        config:
+          scrape_configs:
+            # --- Mimir (nginx gateway /metrics) ---
+            - job_name: mimir
+              scrape_interval: 30s
+              metrics_path: /metrics
+              static_configs:
+                - targets:
+                    - obs-prod-mimir-nginx.observability.svc.cluster.local:80
+
+            # --- Mimir internal components ---
+            - job_name: mimir-components
+              scrape_interval: 30s
+              metrics_path: /metrics
+              static_configs:
+                - targets:
+                    - obs-prod-mimir-distributor.observability.svc.cluster.local:8080
+                    - obs-prod-mimir-ingester.observability.svc.cluster.local:8080
+                    - obs-prod-mimir-querier.observability.svc.cluster.local:8080
+                    - obs-prod-mimir-store-gateway.observability.svc.cluster.local:8080
+                    - obs-prod-mimir-compactor.observability.svc.cluster.local:8080
+
+            # --- Tempo ---
+            - job_name: tempo
+              scrape_interval: 30s
+              static_configs:
+                - targets:
+                    - obs-prod-tempo.observability.svc.cluster.local:3100
+
+            # --- Loki ---
+            - job_name: loki
+              scrape_interval: 30s
+              static_configs:
+                - targets:
+                    - obs-prod-loki.observability.svc.cluster.local:3100
+
+            # --- Grafana ---
+            - job_name: grafana
+              scrape_interval: 30s
+              static_configs:
+                - targets:
+                    - obs-prod-grafana.observability.svc.cluster.local:3000
+
+            # --- MinIO ---
+            - job_name: minio
+              scrape_interval: 30s
+              metrics_path: /minio/v2/metrics/cluster
+              static_configs:
+                - targets:
+                    - obs-prod-minio.observability.svc.cluster.local:9000
+
+            # --- kafka-native ---
+            - job_name: kafka
+              scrape_interval: 30s
+              static_configs:
+                - targets:
+                    - obs-prod-kafka-native.observability.svc.cluster.local:9404
+
+    service:
+      pipelines:
+        metrics:
+          receivers: [k8s_cluster, otlp, prometheus]
