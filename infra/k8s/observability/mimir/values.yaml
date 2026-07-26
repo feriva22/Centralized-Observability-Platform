@@ -31,8 +31,6 @@ mimir-distributed:
           topic: observability.metrics
           auto_create_topic_enabled: true
           auto_create_topic_default_partitions: 100
-          # Use gzip instead of snappy — avoids Snappy native library crash in Kafka 4.3.1
-          compression_type: gzip
 
       ingester:
         push_grpc_method_enabled: false
