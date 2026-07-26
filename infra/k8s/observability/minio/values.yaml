@@ -8,7 +8,7 @@ minio:
     existingSecretUserKey: user
     existingSecretPasswordKey: password
 
-  defaultBuckets: "loki-chunks,tempo-traces,mimir-blocks,mimir-alertmanager,mimir-ruler"
+  defaultBuckets: "observability-k8s"
 
   persistence:
     enabled: true

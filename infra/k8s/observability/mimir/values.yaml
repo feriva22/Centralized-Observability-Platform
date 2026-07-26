@@ -24,6 +24,18 @@ mimir-distributed:
         s3:
           bucket_name: mimir-ruler
 
+      # Kafka-based ingest storage — uses existing Kafka deployment
+      ingest_storage:
+        enabled: true
+        kafka:
+          address: obs-sandbox-kafka.observability.svc.cluster.local:9092
+          topic: observability.metrics
+          auto_create_topic_enabled: true
+          auto_create_topic_default_partitions: 100
+
+      ingester:
+        push_grpc_method_enabled: false
+
   alertmanager:
     enabled: true
     replicas: 1
@@ -58,6 +70,10 @@ mimir-distributed:
       enabled: false
 
   minio:
+    enabled: false
+
+  # Disable bundled Kafka — using existing external Kafka
+  kafka:
     enabled: false
 
   metaMonitoring:

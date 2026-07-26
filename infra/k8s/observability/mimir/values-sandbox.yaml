@@ -20,9 +20,58 @@ mimir-distributed:
   compactor:
     replicas: 1
 
+  # Disable all extra caches to save cost/complexity unless query speed is slow
+  chunks-cache: { enabled: false }
+  index-cache: { enabled: false }
+  metadata-cache: { enabled: false }
+  results-cache: { enabled: false }
+
+  global:
+    extraEnv:
+      - name: MY_POD_IP
+        valueFrom:
+          fieldRef:
+            fieldPath: status.podIP
+
   mimir:
     structuredConfig:
+      memberlist:
+        advertise_addr: ${MY_POD_IP}
       common:
         storage:
+          backend: s3
           s3:
             insecure: true
+            bucket_name: observability-k8s
+            endpoint: obs-minio.observability.svc.cluster.local:9000
+            region: ap-southeast-3
+            access_key_id: admin
+            secret_access_key: ""
+            path_style_force_enabled: true
+      blocks_storage:
+        s3:
+          bucket_name: observability-k8s
+          endpoint: obs-minio.observability.svc.cluster.local:9000
+          region: ap-southeast-3
+        storage_prefix: tsdb
+
+      alertmanager_storage:
+        s3:
+          bucket_name: observability-k8s
+          endpoint: obs-minio.observability.svc.cluster.local:9000
+          region: ap-southeast-3
+        storage_prefix: alertmanager
+
+      ruler_storage:
+        s3:
+          bucket_name: observability-k8s
+          endpoint: obs-minio.observability.svc.cluster.local:9000
+          region: ap-southeast-3
+        storage_prefix: ruler
+
+      # using setup from existing running mimir cluster
+      ingest_storage:
+        enabled: true
+        kafka:
+          producer_max_record_size_bytes: 15983616 # 20MB, adjust if you have larger samples or want to optimize for fewer/larger messages
+
