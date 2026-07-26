@@ -11,9 +11,9 @@ metadata:
     {{- with .Values.service.annotations }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-    {{- if .Values.jmx.enabled }}
+    {{- if .Values.kafkaExporter.enabled }}
     prometheus.io/scrape: "true"
-    prometheus.io/port: "{{ .Values.service.metricsPort }}"
+    prometheus.io/port: "{{ .Values.kafkaExporter.port }}"
     prometheus.io/path: /metrics
     {{- end }}
   namespace: {{ .Release.Namespace | quote }}
@@ -24,8 +24,8 @@ spec:
       protocol: TCP
       name: kafka
       targetPort: kafka
-    {{- if .Values.jmx.enabled }}
-    - port: {{ .Values.service.metricsPort }}
+    {{- if .Values.kafkaExporter.enabled }}
+    - port: {{ .Values.kafkaExporter.port }}
       protocol: TCP
       name: metrics
       targetPort: metrics

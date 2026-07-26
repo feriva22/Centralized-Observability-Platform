@@ -9,51 +9,16 @@ image:
 service:
   port: 9092
   controllerPort: 9093
-  metricsPort: 9404
-  jmxPort: 9999
+  metricsPort: 9308
   type: ClusterIP
   annotations: {}
   labels: {}
 
-jmx:
+kafkaExporter:
   enabled: true
-  port: 9999
-  exporterPort: 9404
-  exporterVersion: "1.0.1"
-  config:
-    # Kafka JMX exporter rules — scrape common broker MBeans
-    startDelaySeconds: 10
-    jmxUrl: "service:jmx:rmi:///jndi/rmi://localhost:9999/jmxrmi"
-    ssl: false
-    whitelistObjectNames:
-      - "kafka.controller:*"
-      - "kafka.server:*"
-      - "kafka.network:*"
-      - "kafka.log:*"
-    rules:
-      - pattern: "kafka.controller<type=(.+), name=(.+)><>(Count|Value|Mean|Rate)"
-        name: "kafka_controller_$1_$2"
-        type: GAUGE
-      - pattern: "kafka.server<type=(.+), name=(.+), topic=(.+)><>(Count|OneMinuteRate|MeanRate)"
-        name: "kafka_server_$1_$2"
-        type: GAUGE
-        labels:
-          topic: "$3"
-      - pattern: "kafka.server<type=(.+), name=(.+)><>(Count|Value|Mean|Rate)"
-        name: "kafka_server_$1_$2"
-        type: GAUGE
-      - pattern: "kafka.network<type=(.+), name=(.+)><>(Count|Value|Mean|Rate)"
-        name: "kafka_network_$1_$2"
-        type: GAUGE
-      - pattern: "kafka.log<type=(.+), name=(.+), topic=(.+), partition=(.+)><>(Count|Value|Mean|Rate)"
-        name: "kafka_log_$1_$2"
-        type: GAUGE
-        labels:
-          topic: "$3"
-          partition: "$4"
-      - pattern: "kafka.log<type=(.+), name=(.+)><>(Count|Value|Mean|Rate)"
-        name: "kafka_log_$1_$2"
-        type: GAUGE
+  repository: danielqsj/kafka_exporter
+  tag: latest
+  port: 9308
 
 persistence:
   enabled: true

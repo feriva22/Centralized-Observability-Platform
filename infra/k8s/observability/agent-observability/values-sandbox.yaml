@@ -69,7 +69,7 @@ otel-gateway:
               scrape_interval: 30s
               static_configs:
                 - targets:
-                    - kafka-native.observability.svc.cluster.local:9404
+                    - kafka-native.observability.svc.cluster.local:9308
 
     service:
       pipelines:

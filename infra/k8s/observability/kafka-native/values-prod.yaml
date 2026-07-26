@@ -18,7 +18,7 @@ resources:
 
 logRetentionHours: 168
 
-jmx:
+kafkaExporter:
   enabled: true
 
 podDisruptionBudget:
