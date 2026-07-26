@@ -58,7 +58,10 @@ spec:
               name: controller
               protocol: TCP
           {{- $kafkaName     := include "kafka-native.fullname" . -}}
-          {{- $clusterDomain := dig "global" "clusterDomain" "cluster.local" .Values -}}
+          {{- $clusterDomain := "cluster.local" -}}
+          {{- if and .Values.global .Values.global.clusterDomain -}}
+          {{-   $clusterDomain = .Values.global.clusterDomain -}}
+          {{- end -}}
           {{- $namespace     := .Release.Namespace -}}
           {{- $quorumVoters  := list -}}
           {{- range $i := until (int $replicas) -}}
