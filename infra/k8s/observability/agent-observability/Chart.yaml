@@ -1,0 +1,19 @@
+apiVersion: v2
+name: monitoring-otel-native
+description: Full OpenTelemetry-native observability stack (no Prometheus Operator). DaemonSet for node-level collection, Deployment as LGTM gateway.
+type: application
+version: 1.0.0
+appVersion: "0.153.0"
+
+dependencies:
+  # OTel Collector — DaemonSet (node agent: logs, hostmetrics, OTLP ingest)
+  - name: opentelemetry-collector
+    version: "0.153.0"
+    repository: "https://open-telemetry.github.io/opentelemetry-helm-charts"
+    alias: otel-daemonset
+
+  # OTel Collector — Deployment (gateway: aggregation + export to LGTM)
+  - name: opentelemetry-collector
+    version: "0.153.0"
+    repository: "https://open-telemetry.github.io/opentelemetry-helm-charts"
+    alias: otel-gateway

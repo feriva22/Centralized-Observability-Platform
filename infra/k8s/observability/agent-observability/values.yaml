@@ -1,0 +1,318 @@
+# =============================================================================
+# OTel Collector — Gateway (Deployment)
+# Role: Aggregates all signals from DaemonSet pods + k8s_cluster metrics
+#       Exports ALL signals (metrics + logs + traces) via single OTLP endpoint
+#       to LGTM stack at observability.posindonesia.co.id
+# =============================================================================
+otel-gateway:
+  mode: deployment
+  replicaCount: 1  # k8s_cluster receiver has no leader election — single replica avoids duplicate metrics
+
+  # -- Image
+  image:
+    repository: otel/opentelemetry-collector-contrib
+    tag: "0.153.0"
+    pullPolicy: IfNotPresent
+
+
+  # -- RBAC — needed for k8sattributes + prometheus receiver (list endpoints/nodes/pods)
+  clusterRole:
+    create: true
+    rules:
+      - apiGroups: [""]
+        resources:
+          - nodes
+          - nodes/proxy
+          - nodes/metrics
+          - services
+          - endpoints
+          - pods
+          - namespaces
+          - replicationcontrollers
+          - resourcequotas
+          - persistentvolumes
+          - persistentvolumeclaims
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["apps"]
+        resources:
+          - deployments
+          - daemonsets
+          - replicasets
+          - statefulsets
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["batch"]
+        resources:
+          - jobs
+          - cronjobs
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["autoscaling"]
+        resources:
+          - horizontalpodautoscalers
+        verbs: ["get", "list", "watch"]
+      - apiGroups: ["extensions", "networking.k8s.io"]
+        resources: ["ingresses"]
+        verbs: ["get", "list", "watch"]
+
+  serviceAccount:
+    create: true
+
+  # -- Service — expose OTLP ports for DaemonSet → Gateway traffic
+  service:
+    type: ClusterIP
+
+  ports:
+    otlp:
+      enabled: true
+      containerPort: 4317
+      servicePort: 4317
+      protocol: TCP
+    otlp-http:
+      enabled: true
+      containerPort: 4318
+      servicePort: 4318
+      protocol: TCP
+    metrics:
+      enabled: true
+      containerPort: 8888
+      servicePort: 8888
+      protocol: TCP
+
+  # -- Resource limits
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: "1"
+      memory: 512Mi
+
+  # -- Collector config
+  config:
+    extensions:
+      health_check:
+        endpoint: "0.0.0.0:13133"
+      pprof:
+        endpoint: "0.0.0.0:1777"
+
+    receivers:
+      # -----------------------------------------------------------------------
+      # 1. OTLP — accepts all signals forwarded from OTel DaemonSet pods
+      # -----------------------------------------------------------------------
+      otlp:
+        protocols:
+          grpc:
+            endpoint: "0.0.0.0:4317"
+          http:
+            endpoint: "0.0.0.0:4318"
+
+      # -----------------------------------------------------------------------
+      # 2. k8s_cluster — OTel-native equivalent of kube-state-metrics.
+      #    Collects cluster-level metrics: pod/node/deployment/daemonset states,
+      #    resource quotas, HPA, namespaces, etc.
+      #    NOTE: replicaCount is set to 1 for this reason — running 2 replicas
+      #    would cause duplicate cluster metrics. Scale to 2 only for OTLP
+      #    ingress HA if needed (use a separate deployment for k8s_cluster).
+      # -----------------------------------------------------------------------
+      k8s_cluster:
+        collection_interval: 60s
+        node_conditions_to_report:
+          - Ready
+          - MemoryPressure
+          - DiskPressure
+          - PIDPressure
+        allocatable_types_to_report:
+          - cpu
+          - memory
+          - storage
+          - ephemeral-storage
+        resource_attributes:
+          k8s.namespace.name:
+            enabled: true
+          k8s.node.name:
+            enabled: true
+          k8s.pod.name:
+            enabled: true
+          k8s.pod.uid:
+            enabled: true
+          k8s.container.name:
+            enabled: true
+          k8s.deployment.name:
+            enabled: true
+          k8s.daemonset.name:
+            enabled: true
+          k8s.statefulset.name:
+            enabled: true
+          k8s.replicaset.name:
+            enabled: true
+          k8s.cronjob.name:
+            enabled: true
+          k8s.job.name:
+            enabled: true
+          k8s.hpa.name:
+            enabled: true
+          k8s.resourcequota.name:
+            enabled: true
+
+    processors:
+      # -- Protect against OOM
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+
+      # -- Enrich traces + logs with k8s pod/namespace/node metadata
+      k8s_attributes:
+        auth_type: serviceAccount
+        passthrough: false
+        extract:
+          metadata:
+            - k8s.pod.name
+            - k8s.pod.uid
+            - k8s.deployment.name
+            - k8s.namespace.name
+            - k8s.node.name
+            - k8s.pod.start_time
+          labels:
+            - tag_name: app
+              key: app.kubernetes.io/name
+              from: pod
+            - tag_name: version
+              key: app.kubernetes.io/version
+              from: pod
+        pod_association:
+          - sources:
+              - from: resource_attribute
+                name: k8s.pod.ip
+          - sources:
+              - from: resource_attribute
+                name: k8s.pod.uid
+          - sources:
+              - from: connection
+
+      # -- Attach static resource attributes to all signals
+      resource:
+        attributes:
+          - key: cluster
+            value: "SANDBOX-cluster"
+            action: upsert
+          - key: cloud
+            value: "local"
+            action: upsert
+          - key: environment
+            value: "development"
+            action: upsert
+          - key: region
+            value: "ap-southeast-3"
+            action: upsert
+          - key: collector
+            value: "otel-contrib"
+            action: upsert
+          - key: collector.component
+            value: "gateway"
+            action: upsert
+      batch:
+        send_batch_size: 1000
+        send_batch_max_size: 1500
+        timeout: 5s
+
+      # Dedicated smaller batch for metrics to avoid remote write timeout
+      batch/metrics:
+        send_batch_size: 200
+        send_batch_max_size: 400
+        timeout: 10s
+
+    exporters:
+      # -----------------------------------------------------------------------
+      # Option C — per-signal exporters matching LGTM backend paths exactly
+      # Same endpoints as Alloy config — guaranteed label compatibility
+      # -----------------------------------------------------------------------
+
+      # Metrics → Mimir (Prometheus Remote Write — labels work natively)
+      prometheusremotewrite:
+        endpoint: "http://obs-sandbox-mimir-gateway.observability.svc.cluster.local/api/v1/push"
+        headers:
+          X-Scope-OrgID: "INFRA"
+        tls:
+          insecure_skip_verify: true
+        resource_to_telemetry_conversion:
+          enabled: true
+        timeout: 30s
+        remote_write_queue:
+          enabled: true
+          queue_size: 5000
+        max_batch_request_parallelism: 10
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          max_interval: 30s
+          max_elapsed_time: 300s
+
+      # Logs → Loki via OTLP HTTP (loki exporter removed in otel-contrib v0.130+)
+      # Loki natively accepts OTLP at /otlp/v1/logs
+      # Using same base path prefix as Alloy's loki push: /logging
+      otlp_http/loki:
+        endpoint: "http://obs-sandbox-loki-gateway.observability.svc.cluster.local/logging/otlp"
+        headers:
+          X-Scope-OrgID: "INFRA"
+        tls:
+          insecure: true
+        sending_queue:
+          enabled: true
+          num_consumers: 4
+          queue_size: 1000
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          max_interval: 30s
+          max_elapsed_time: 300s
+
+      # Traces → Tempo (OTLP HTTP — resource attrs visible natively in Tempo)
+      otlp_http/tempo:
+        endpoint: "http://obs-sandbox-tempo-gateway.observability.svc.cluster.local/tracing"
+        headers:
+          X-Scope-OrgID: "INFRA"
+        tls:
+          insecure: true
+        sending_queue:
+          enabled: true
+          num_consumers: 4
+          queue_size: 1000
+        retry_on_failure:
+          enabled: true
+          initial_interval: 5s
+          max_interval: 30s
+          max_elapsed_time: 300s
+
+      # -- Debug exporter — reduce to basic after confirming data flows
+      debug:
+        verbosity: basic
+
+    service:
+      extensions: [health_check, pprof]
+      pipelines:
+        # Metrics → Mimir via prometheusremotewrite
+        metrics:
+          receivers: [k8s_cluster, otlp]
+          processors: [memory_limiter, resource, batch/metrics]
+          exporters: [prometheusremotewrite, debug]
+
+        # Logs → Loki via otlp_http
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, k8s_attributes, resource, batch]
+          exporters: [otlp_http/loki, debug]
+
+        # Traces → Tempo via otlp_http
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, k8s_attributes, resource, batch]
+          exporters: [otlp_http/tempo, debug]
+
+# =============================================================================
+# OTel-native coverage map (no Prometheus exporters needed):
+#
+#   node-exporter (host CPU/mem/disk/net) → hostmetrics receiver   (DaemonSet)
+#   kubelet/cAdvisor (container metrics)  → kubeletstats receiver  (DaemonSet)
+#   kube-state-metrics (cluster objects)  → k8s_cluster receiver   (Gateway)
+#   kube-apiserver / control-plane        → k8s_cluster receiver   (Gateway)
+# =============================================================================
