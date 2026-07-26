@@ -44,28 +44,28 @@ mimir-distributed:
             insecure: true
             bucket_name: observability-k8s
             endpoint: obs-sandbox-minio.observability.svc.cluster.local:9000
-            region: ap-southeast-3
+            region: us-east-1
             access_key_id: admin
             secret_access_key: "eCEWI6JVf8uXZMuzs45LdooBfVp5p9Vj"
       blocks_storage:
         s3:
           bucket_name: observability-k8s
           endpoint: obs-sandbox-minio.observability.svc.cluster.local:9000
-          region: ap-southeast-3
+          region: us-east-1
         storage_prefix: tsdb
 
       alertmanager_storage:
         s3:
           bucket_name: observability-k8s
           endpoint: obs-sandbox-minio.observability.svc.cluster.local:9000
-          region: ap-southeast-3
+          region: us-east-1
         storage_prefix: alertmanager
 
       ruler_storage:
         s3:
           bucket_name: observability-k8s
           endpoint: obs-sandbox-minio.observability.svc.cluster.local:9000
-          region: ap-southeast-3
+          region: us-east-1
         storage_prefix: ruler
 
       # using setup from existing running mimir cluster
