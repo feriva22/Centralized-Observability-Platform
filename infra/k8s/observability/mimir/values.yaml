@@ -13,7 +13,6 @@ mimir-distributed:
             access_key_id: admin
             secret_access_key: ""
             insecure: true
-            path_style_force_enabled: true
       blocks_storage:
         s3:
           bucket_name: mimir-blocks
