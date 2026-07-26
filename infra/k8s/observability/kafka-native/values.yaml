@@ -3,7 +3,7 @@ replicas: 1
 image:
   registry: docker.io
   repository: apache/kafka-native
-  tag: 4.1.0
+  tag: 4.3.1
   pullPolicy: IfNotPresent
 
 service:
