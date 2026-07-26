@@ -3,8 +3,8 @@ kafka:
 
   image:
     registry: docker.io
-    repository: apache/kafka
-    tag: "4.3.1@sha256:77e3df9054047a88b520d0cc46e16696d3b22022e1d580aeccd2632df6532837"
+    repository: apache/kafka-native
+    tag: "4.1.0"
     imagePullPolicy: IfNotPresent
 
   heapOpts: "-Xmx512m -Xms256m"
