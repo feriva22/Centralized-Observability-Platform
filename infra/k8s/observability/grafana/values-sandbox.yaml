@@ -4,7 +4,7 @@ grafana:
   replicas: 1
 
   persistence:
-    enabled: false
+    enabled: true
 
   resources:
     requests:
