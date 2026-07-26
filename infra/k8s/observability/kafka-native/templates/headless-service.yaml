@@ -9,7 +9,9 @@ metadata:
     {{- toYaml . | nindent 4 }}
     {{- end }}
   annotations:
-    {{- toYaml .Values.service.annotations | nindent 4 }}
+    {{- with .Values.service.annotations }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
   namespace: {{ .Release.Namespace | quote }}
 spec:
   type: ClusterIP
