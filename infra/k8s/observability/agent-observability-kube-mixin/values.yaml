@@ -35,6 +35,10 @@ alloy:
   alloy:
     clustering:
       enabled: false
+    resources:
+      limits:
+        cpu: null
+        memory: 256Mi
     extraEnv:
       # Instructs Go GC to trigger aggressively before hitting the ceiling
       - name: GOMEMLIMIT
