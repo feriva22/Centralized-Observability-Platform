@@ -54,14 +54,14 @@ alloy:
         }
 
         // 1. Discover and scrape all ServiceMonitors (Node Exporter, KSM, etc.)
-        prometheus.operator.servicemonitors "kube_stack" {
-          forward_to = [prometheus.remote_write.mimir.receiver]
-        }
+        // prometheus.operator.servicemonitors "kube_stack" {
+        //   forward_to = [prometheus.remote_write.mimir.receiver]
+        // }
 
-        // 2. Discover and scrape all PodMonitors (if you have any)
-        prometheus.operator.podmonitors "kube_stack" {
-          forward_to = [prometheus.remote_write.mimir.receiver]
-        }
+        // // 2. Discover and scrape all PodMonitors (if you have any)
+        // prometheus.operator.podmonitors "kube_stack" {
+        //   forward_to = [prometheus.remote_write.mimir.receiver]
+        // }
 
         // 3. Discover mimir metrics endpoint for self-monitoring
         discovery.kubernetes "mimir_services" {
