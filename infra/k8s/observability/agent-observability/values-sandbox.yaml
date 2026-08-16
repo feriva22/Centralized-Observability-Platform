@@ -24,16 +24,81 @@ otel-gateway:
             #        - obs-sandbox-mimir-nginx.observability.svc.cluster.local:80
 #
             # --- Mimir internal components ---
-            - job_name: mimir-components
+            # Job name follows Mimir monitoring convention: <namespace>/<component>,
+            # so the `job` label matches what Mimir dashboards/rules expect.
+            # relabel_configs injects namespace=observability on all mimir metrics only.
+            - job_name: observability/distributor
               scrape_interval: 30s
               metrics_path: /metrics
               static_configs:
                 - targets:
                     - obs-sandbox-mimir-distributor.observability.svc.cluster.local:8080
+              relabel_configs:
+                - target_label: namespace
+                  replacement: observability
+            - job_name: observability/ingester
+              scrape_interval: 30s
+              metrics_path: /metrics
+              static_configs:
+                - targets:
                     - obs-sandbox-mimir-ingester.observability.svc.cluster.local:8080
+              relabel_configs:
+                - target_label: namespace
+                  replacement: observability
+            - job_name: observability/querier
+              scrape_interval: 30s
+              metrics_path: /metrics
+              static_configs:
+                - targets:
                     - obs-sandbox-mimir-querier.observability.svc.cluster.local:8080
+              relabel_configs:
+                - target_label: namespace
+                  replacement: observability
+            - job_name: observability/ruler
+              scrape_interval: 30s
+              metrics_path: /metrics
+              static_configs:
+                - targets:
+                    - obs-sandbox-mimir-ruler.observability.svc.cluster.local:8080
+              relabel_configs:
+                - target_label: namespace
+                  replacement: observability
+            - job_name: observability/query-frontend
+              scrape_interval: 30s
+              metrics_path: /metrics
+              static_configs:
+                - targets:
+                    - obs-sandbox-mimir-query-frontend.observability.svc.cluster.local:8080
+              relabel_configs:
+                - target_label: namespace
+                  replacement: observability
+            - job_name: observability/query-scheduler
+              scrape_interval: 30s
+              metrics_path: /metrics
+              static_configs:
+                - targets:
+                    - obs-sandbox-mimir-query-scheduler.observability.svc.cluster.local:8080
+              relabel_configs:
+                - target_label: namespace
+                  replacement: observability
+            - job_name: observability/store-gateway
+              scrape_interval: 30s
+              metrics_path: /metrics
+              static_configs:
+                - targets:
                     - obs-sandbox-mimir-store-gateway.observability.svc.cluster.local:8080
+              relabel_configs:
+                - target_label: namespace
+                  replacement: observability
+            - job_name: observability/compactor
+              scrape_interval: 30s
+              metrics_path: /metrics
+              static_configs:
+                - targets:
                     - obs-sandbox-mimir-compactor.observability.svc.cluster.local:8080
+              relabel_configs:
+                - target_label: namespace
+                  replacement: observability
 #
             ## --- Tempo ---
             #- job_name: tempo
