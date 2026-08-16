@@ -211,24 +211,64 @@ otel-daemonset:
       prometheus:
         config:
           scrape_configs:
-            - job_name: istio-ztunnel-node
+            # - job_name: istio-ztunnel-node
+            #   scrape_interval: 15s
+            #   kubernetes_sd_configs:
+            #     - role: pod
+            #       selectors:
+            #         - role: pod
+            #           field: "spec.nodeName=${env:KUBE_NODE_NAME}"
+            #   relabel_configs:
+            #     # Keep only ztunnel pods
+            #     - source_labels: [__meta_kubernetes_pod_label_app]
+            #       action: keep
+            #       regex: ztunnel
+            #     # Point to ztunnel metrics port 15020
+            #     - source_labels: [__address__]
+            #       action: replace
+            #       regex: ([^:]+)(?::\d+)?
+            #       replacement: $1:15020
+            #       target_label: __address__
+
+            # --- Mimir internal components ---
+            # Job name follows Mimir monitoring convention: <namespace>/<component>,
+            # so the `job` label matches what Mimir dashboards/rules expect.
+            # relabel_configs injects namespace=observability on all mimir metrics only.
+            - job_name: mimir-components
               scrape_interval: 15s
+              metrics_path: /metrics
               kubernetes_sd_configs:
                 - role: pod
                   selectors:
                     - role: pod
                       field: "spec.nodeName=${env:KUBE_NODE_NAME}"
-              relabel_configs:
-                # Keep only ztunnel pods
-                - source_labels: [__meta_kubernetes_pod_label_app]
-                  action: keep
-                  regex: ztunnel
-                # Point to ztunnel metrics port 15020
-                - source_labels: [__address__]
-                  action: replace
-                  regex: ([^:]+)(?::\d+)?
-                  replacement: $1:15020
-                  target_label: __address__
+                  relabel_configs:
+                    # 1. Keep only Mimir pods (using app label)
+                    - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+                      action: keep
+                      regex: mimir
+                    # 2. Keep only the HTTP metrics port to avoid duplicate targets
+                    - source_labels: [__meta_kubernetes_pod_container_port_number]
+                      action: keep
+                      regex: "8080"
+                    # 3. DYNAMIC JOB LABEL: Concatenates <namespace>/<component>
+                    # Result: "observability/distributor", "observability/ingester", etc.
+                    - source_labels: [__meta_kubernetes_pod_namespace, __meta_kubernetes_pod_label_app_kubernetes_io_component]
+                      separator: '/'
+                      action: replace
+                      target_label: job
+                    # 4. Map namespace
+                    - source_labels: [__meta_kubernetes_pod_namespace]
+                      action: replace
+                      target_label: namespace
+                    # 5. Map pod name
+                    - source_labels: [__meta_kubernetes_pod_name]
+                      action: replace
+                      target_label: pod
+                    # 6. Map instance (ip:port)
+                    - source_labels: [__address__]
+                      action: replace
+                      target_label: instance
 
     processors:
       # -- Protect against OOM on node
