@@ -29,7 +29,7 @@ alloy:
   controller:
     # -- Type of controller to use for deploying Grafana Alloy in the cluster.
     # Must be one of 'daemonset', 'deployment', or 'statefulset'.
-    type: 'statefulset'
+    type: 'daemonset'
     rbac:
       create: true # This allows Alloy to read ServiceMonitors
   alloy:
@@ -122,7 +122,7 @@ alloy:
         // prometheus.scrape "mimir_metrics" {
         //   targets    = discovery.relabel.mimir_targets.output
         //   forward_to = [prometheus.remote_write.mimir.receiver]
-// 
+
         //   // Set the frequency here (e.g., 60s or 15s)
         //   scrape_interval = "15s"
         // }
