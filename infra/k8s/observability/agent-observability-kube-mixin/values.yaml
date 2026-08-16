@@ -69,7 +69,7 @@ alloy:
           // Only match node-exporter and kubelet
           selector {
             match_expressions = [
-              { key = "app.kubernetes.io/name", operator = "In", values = ["prometheus-node-exporter", "kubelet"] }
+              { key = "app.kubernetes.io/name", operator = "In", values = ["prometheus-node-exporter", "kubelet"] },
             ]
           }
           forward_to = [prometheus.relabel.node_local_filter.receiver]
