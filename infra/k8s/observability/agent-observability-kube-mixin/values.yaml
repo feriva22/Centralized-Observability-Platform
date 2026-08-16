@@ -65,7 +65,7 @@ alloy:
         }
 
         1. Discover and scrape all ServiceMonitors (Node Exporter, KSM, etc.)
-        prometheus.operator.servicemonitors "node_only" {z
+        prometheus.operator.servicemonitors "node_only" {
           // Only match node-exporter and kubelet
           selector {
             match_expressions = [
