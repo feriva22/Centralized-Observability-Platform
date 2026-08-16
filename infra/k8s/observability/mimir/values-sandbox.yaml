@@ -90,3 +90,6 @@ mimir-distributed:
           auto_create_topic_default_partitions: 10
           producer_max_record_size_bytes: 15983616 # 20MB, adjust if you have larger samples or want to optimize for fewer/larger messages
 
+      ruler:
+        max_rules_per_rule_group: 50
+
