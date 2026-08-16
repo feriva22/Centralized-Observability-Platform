@@ -1,0 +1,132 @@
+kube-prometheus-stack:
+  # Disable the local database and UI
+  prometheus:
+    enabled: false
+  alertmanager:
+    enabled: false
+  grafana:
+    enabled: false
+
+  # Enable CRDs installation
+  crds:
+    enabled: true
+
+  # Keep the "Brain" (Operator) and the "Body" (Exporters)
+  prometheusOperator:
+    enabled: true
+  nodeExporter:
+    enabled: true
+  kubeStateMetrics:
+    enabled: true
+
+  # Keep the Default ServiceMonitors so Alloy can find them
+  # This is where the labeling logic lives!
+  defaultRules:
+    create: true  # This creates the PrometheusRules (alerts)
+  kubernetesServiceMonitors:
+    enabled: true # This creates the ServiceMonitors for Kubelet, etc.
+alloy:
+  controller:
+    # -- Type of controller to use for deploying Grafana Alloy in the cluster.
+    # Must be one of 'daemonset', 'deployment', or 'statefulset'.
+    type: 'daemonset'
+    rbac:
+      create: true # This allows Alloy to read ServiceMonitors
+  alloy:
+    clustering:
+      enabled: false
+    resources:
+      limits:
+        cpu: null
+        memory: 256Mi
+    extraEnv:
+      # Instructs Go GC to trigger aggressively before hitting the ceiling
+      - name: GOMEMLIMIT
+        value: "75MiB"
+      # Triggers GC more frequently (default is 100)
+      - name: GOGC
+        value: "50"
+    configMap:
+      content: |-
+        logging {
+          level  = "info"
+          format = "logfmt"
+        }
+
+        // Enable livedebugging for troubleshooting
+        livedebugging {
+          enabled = true
+        }
+        
+        // Add ruler integration
+        // mimir.rules.kubernetes "local" {
+        //   address = "http://obs-sandbox-mimir-ruler.observability.svc.cluster.local:8080"
+        //   tenant_id = "INFRA-2"
+        // }
+
+        // 1. Discover and scrape all ServiceMonitors (Node Exporter, KSM, etc.)
+        prometheus.operator.servicemonitors "node_only" {
+          // Only match node-exporter and kubelet
+          selector {
+            match_expressions = [
+              { key = "app.kubernetes.io/name", operator = "In", values = ["prometheus-node-exporter", "kubelet"] },
+            ]
+          }
+          forward_to = [prometheus.relabel.node_local_filter.receiver]
+        }
+
+        prometheus.relabel "node_local_filter" {
+          forward_to = [prometheus.relabel.drop_high_cardinality.receiver]
+
+          // CRITICAL: Only keep targets running on the current node
+          rule {
+            action        = "keep"
+            source_labels = ["__meta_kubernetes_pod_node_name"]
+            regex         = sys.env("NODE_NAME")
+          }
+        }
+
+        prometheus.relabel "drop_high_cardinality" {
+          forward_to = [prometheus.remote_write.mimir.receiver]
+
+          // Drop heavy Go runtime and cAdvisor stats
+          rule {
+            action        = "drop"
+            source_labels = ["__name__"]
+            regex         = "(container_tasks_state|container_memory_failures_total|container_blkio_device_usage_total|container_fs_reads_merged_total|container_fs_writes_merged_total|container_cpu_cfs_throttled_periods_total|go_gc_.*|go_memstats_.*)"
+          }
+        }
+
+        // 3. Define the Remote Write destination (Mimir)
+        prometheus.remote_write "mimir" {
+          endpoint {
+            // This points to the Mimir Gateway service
+            url = "http://observability.posindonesia.co.id/api/v1/push"
+
+            // If your Mimir has multi-tenancy enabled (default in some charts), 
+            // you MUST provide a Tenant ID header.
+            headers = {
+              "X-Scope-OrgID" = "PT-Pos-Indonesia-Cluster-Development-Jakarta", 
+            }
+
+            // Reduce queue capacity to keep memory lean
+            queue_config {
+              capacity             = 500   // Default is 10000 (huge memory footprint)
+              max_samples_per_send = 500
+              max_shards           = 10
+            }
+          
+          }
+
+          // Minimize or disable WAL buffer on local nodes
+          wal {
+            truncate_frequency = "1m"      // Flush chunks aggressively
+          }
+
+          external_labels = {
+            "cluster" = "EKS-Dev-Cluster-JKT",
+            "cloud"   = "aws",
+            "environment" = "development",
+            "region" = "ap-southeast-3",
+          }
+        }
