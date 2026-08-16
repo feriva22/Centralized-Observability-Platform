@@ -85,6 +85,13 @@ alloy:
             action        = "keep"
           }
 
+          // 2. Only keep the 'http-metrics' port (don't scrape GRPC ports)
+          rule {
+            source_labels = ["__meta_kubernetes_pod_name"]
+            target_label  = "pod"
+            action        = "replace"
+          }
+
           // 3. EXPLICIT NAMESPACE LABEL (Required for cortex_build_info)
           rule {
             source_labels = ["__meta_kubernetes_namespace"]
@@ -117,7 +124,7 @@ alloy:
           forward_to = [prometheus.remote_write.mimir.receiver]
 
           // Set the frequency here (e.g., 60s or 15s)
-          scrape_interval = "60s"
+          scrape_interval = "15s"
         }
 
         // 3. Define the Remote Write destination (Mimir)
