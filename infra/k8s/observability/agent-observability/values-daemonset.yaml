@@ -239,6 +239,9 @@ otel-daemonset:
               metrics_path: /metrics
               kubernetes_sd_configs:
                 - role: pod
+                  # Force namespace discovery (or specify your mimir namespace here)
+                  namespaces:
+                    own_namespace: false
                   selectors:
                     - role: pod
                       field: "spec.nodeName=${env:KUBE_NODE_NAME}"
@@ -251,12 +254,16 @@ otel-daemonset:
                 - source_labels: [__meta_kubernetes_pod_container_port_number]
                   action: keep
                   regex: "8080"
-                # 3. DYNAMIC JOB LABEL: Concatenates <namespace>/<component>
-                # Result: "observability/distributor", "observability/ingester", etc.
-                - source_labels: [__meta_kubernetes_pod_namespace, __meta_kubernetes_pod_label_app_kubernetes_io_component]
+                # 3. FIX: Safely construct <namespace>/<component>
+                # We enforce that both labels MUST exist before joining with '/'
+                - source_labels: 
+                    - __meta_kubernetes_pod_namespace
+                    - __meta_kubernetes_pod_label_app_kubernetes_io_component
                   separator: '/'
-                  action: replace
+                  regex: '(.+)/(.+)'
                   target_label: job
+                  replacement: '$1/$2'
+                  action: replace
                 # 4. Map namespace
                 - source_labels: [__meta_kubernetes_pod_namespace]
                   action: replace
