@@ -64,10 +64,38 @@ alloy:
           tenant_id = "INFRA-2"
         }
 
-        // 1. Discover and scrape all ServiceMonitors (Node Exporter, KSM, etc.)
-        // prometheus.operator.servicemonitors "kube_stack" {
-        //   forward_to = [prometheus.remote_write.mimir.receiver]
-        // }
+        1. Discover and scrape all ServiceMonitors (Node Exporter, KSM, etc.)
+        prometheus.operator.servicemonitors "node_only" {z
+          // Only match node-exporter and kubelet
+          selector {
+            match_expressions = [
+              { key = "app.kubernetes.io/name", operator = "In", values = ["prometheus-node-exporter", "kubelet"] }
+            ]
+          }
+          forward_to = [prometheus.relabel.node_local_filter.receiver]
+        }
+
+        prometheus.relabel "node_local_filter" {
+          forward_to = [prometheus.relabel.drop_high_cardinality.receiver]
+
+          // CRITICAL: Only keep targets running on the current node
+          rule {
+            action        = "keep"
+            source_labels = ["__meta_kubernetes_pod_node_name"]
+            regex         = sys.env("NODE_NAME")
+          }
+        }
+
+        prometheus.relabel "drop_high_cardinality" {
+          forward_to = [prometheus.remote_write.mimir.receiver]
+
+          // Drop heavy Go runtime and cAdvisor stats
+          rule {
+            action        = "drop"
+            source_labels = ["__name__"]
+            regex         = "(container_tasks_state|container_memory_failures_total|container_blkio_device_usage_total|container_fs_reads_merged_total|container_fs_writes_merged_total|container_cpu_cfs_throttled_periods_total|go_gc_.*|go_memstats_.*)"
+          }
+        }
 
         // // 2. Discover and scrape all PodMonitors (if you have any)
         // prometheus.operator.podmonitors "kube_stack" {
