@@ -1,0 +1,13 @@
+apiVersion: v2
+name: monitoring-agent-kube-mixin
+description: Using Prometheus Operator to deploy a observability stack but only for agent-level collection, only CRD , serviceMonitor, podMonitor and rule. DaemonSet for node-level collection, Deployment as LGTM gateway.
+type: application
+version: 1.0.0
+dependencies:
+  - name: kube-prometheus-stack
+    version: "81.5.0" # Or your preferred version
+    repository: "https://prometheus-community.github.io/helm-charts"
+
+  - name: alloy
+    version: "1.6.0" # Or your preferred version
+    repository: "https://grafana.github.io/helm-charts"
