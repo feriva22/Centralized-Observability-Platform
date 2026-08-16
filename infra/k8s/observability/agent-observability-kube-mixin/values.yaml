@@ -64,7 +64,7 @@ alloy:
           tenant_id = "INFRA-2"
         }
 
-        1. Discover and scrape all ServiceMonitors (Node Exporter, KSM, etc.)
+        // 1. Discover and scrape all ServiceMonitors (Node Exporter, KSM, etc.)
         prometheus.operator.servicemonitors "node_only" {
           // Only match node-exporter and kubelet
           selector {
