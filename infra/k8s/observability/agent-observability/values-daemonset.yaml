@@ -339,7 +339,7 @@ otel-daemonset:
 
         # Metrics: host_metrics (node) + kubelet_stats (container/pod) + prometheus (ztunnel) + OTLP from app pods → enrich → batch → gateway
         metrics:
-          receivers: [host_metrics, kubelet_stats, prometheus, otlp]
+          receivers: [host_metrics, kubelet_stats, otlp]
           processors: [memory_limiter, resource_detection, resource, batch]
           exporters: [otlp_grpc/gateway, debug]
 
