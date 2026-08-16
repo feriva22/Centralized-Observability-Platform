@@ -14,7 +14,7 @@ otel-gateway:
       # -----------------------------------------------------------------------
       prometheus:
         config:
-          scrape_configs: {}
+          scrape_configs: []
             # --- Mimir (nginx gateway /metrics) ---
             #- job_name: mimir
             #  scrape_interval: 30s

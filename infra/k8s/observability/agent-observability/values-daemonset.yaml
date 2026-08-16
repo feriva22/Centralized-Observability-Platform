@@ -242,33 +242,33 @@ otel-daemonset:
                   selectors:
                     - role: pod
                       field: "spec.nodeName=${env:KUBE_NODE_NAME}"
-                  relabel_configs:
-                    # 1. Keep only Mimir pods (using app label)
-                    - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
-                      action: keep
-                      regex: mimir
-                    # 2. Keep only the HTTP metrics port to avoid duplicate targets
-                    - source_labels: [__meta_kubernetes_pod_container_port_number]
-                      action: keep
-                      regex: "8080"
-                    # 3. DYNAMIC JOB LABEL: Concatenates <namespace>/<component>
-                    # Result: "observability/distributor", "observability/ingester", etc.
-                    - source_labels: [__meta_kubernetes_pod_namespace, __meta_kubernetes_pod_label_app_kubernetes_io_component]
-                      separator: '/'
-                      action: replace
-                      target_label: job
-                    # 4. Map namespace
-                    - source_labels: [__meta_kubernetes_pod_namespace]
-                      action: replace
-                      target_label: namespace
-                    # 5. Map pod name
-                    - source_labels: [__meta_kubernetes_pod_name]
-                      action: replace
-                      target_label: pod
-                    # 6. Map instance (ip:port)
-                    - source_labels: [__address__]
-                      action: replace
-                      target_label: instance
+              relabel_configs:
+                # 1. Keep only Mimir pods (using app label)
+                - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_name]
+                  action: keep
+                  regex: mimir
+                # 2. Keep only the HTTP metrics port to avoid duplicate targets
+                - source_labels: [__meta_kubernetes_pod_container_port_number]
+                  action: keep
+                  regex: "8080"
+                # 3. DYNAMIC JOB LABEL: Concatenates <namespace>/<component>
+                # Result: "observability/distributor", "observability/ingester", etc.
+                - source_labels: [__meta_kubernetes_pod_namespace, __meta_kubernetes_pod_label_app_kubernetes_io_component]
+                  separator: '/'
+                  action: replace
+                  target_label: job
+                # 4. Map namespace
+                - source_labels: [__meta_kubernetes_pod_namespace]
+                  action: replace
+                  target_label: namespace
+                # 5. Map pod name
+                - source_labels: [__meta_kubernetes_pod_name]
+                  action: replace
+                  target_label: pod
+                # 6. Map instance (ip:port)
+                - source_labels: [__address__]
+                  action: replace
+                  target_label: instance
 
     processors:
       # -- Protect against OOM on node
