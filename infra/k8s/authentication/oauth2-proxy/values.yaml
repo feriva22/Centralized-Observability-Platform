@@ -1,0 +1,176 @@
+namespace: authentication
+environment: sandbox
+
+# ─────────────────────────────────────────────────────────
+# OAuth2-Proxy – Authentication Gateway
+# ─────────────────────────────────────────────────────────
+# OAuth2-Proxy diletakkan di depan aplikasi-aplikasi yang
+# membutuhkan autentikasi. Ia akan menampilkan halaman login
+# dimana user bisa memilih:
+#   • Authelia (Local User)
+#   • External IDP (Azure AD / Okta) untuk @internal-company.com
+#
+# Setelah login sukses, OAuth2-Proxy menyimpan session dan
+# menambahkan header (X-Forwarded-User, X-Forwarded-Email, dll)
+# ke request yang diteruskan ke aplikasi backend.
+
+oauth2-proxy:
+  # ── Image ──
+  image:
+    registry: quay.io
+    repository: oauth2-proxy/oauth2-proxy
+    tag: ""
+    pullPolicy: IfNotPresent
+
+  # ── Replicas ──
+  replicaCount: 1
+
+  # ── Alpha Config (YAML format, multi-provider) ──
+  alphaConfig:
+    enabled: true
+    configData:
+      # =====================================================
+      # PROVIDER 1: Authelia (untuk local user)
+      # =====================================================
+      # =====================================================
+      # PROVIDER 2: External IDP (Azure AD / Okta)
+      #            untuk user @internal-company.com
+      # =====================================================
+      # Catatan: OAuth2-Proxy tidak mendukung Home Realm
+      # Discovery otomatis. User akan memilih provider
+      # dari halaman login.
+      providers: []
+      #  - id: authelia
+      #    provider: oidc
+      #    client_id: oauth2-proxy
+      #    client_secret: ""
+      #    oidc_issuer_url: https://auth.example.com
+      #    email_domains:
+      #      - "*"
+      #  - id: external
+      #    provider: oidc
+      #    client_id: ""
+      #    client_secret: ""
+      #    oidc_issuer_url: https://login.microsoftonline.com/TENANT_ID/v2.0
+      #    email_domains:
+      #      - internal-company.com
+
+    # ── Server config tambahan ──
+    serverConfigData: {}
+    metricsConfigData: {}
+
+  # ── Legacy config (fallback) ──
+  config:
+    clientID: ""
+    clientSecret: ""
+    cookieSecret: ""
+    cookieName: "_oauth2_proxy"
+    emailDomains:
+      - "*"
+    upstreams:
+      - "file:///dev/null"
+    forceLegacyConfig: false
+
+  # ── Ingress ──
+  ingress:
+    enabled: true
+    className: ""
+    path: /oauth2
+    pathType: Prefix
+    hosts:
+      - auth.example.com
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    tls:
+      - secretName: oauth2-proxy-tls
+        hosts:
+          - auth.example.com
+
+  # ── Service ──
+  service:
+    type: ClusterIP
+    portNumber: 80
+    targetPort: ""
+    appProtocol: http
+
+  # ── Session Storage ──
+  sessionStorage:
+    type: cookie
+    redis:
+      enabled: false
+      clientType: standalone
+      standalone:
+        connectionUrl: ""
+
+  # ── Redis subchart (opsional) ──
+  redis-ha:
+    enabled: false
+
+  # ── Resource ──
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+  # ── Probes ──
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 0
+    timeoutSeconds: 1
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 0
+    periodSeconds: 10
+    timeoutSeconds: 5
+
+  # ── Pod Security ──
+  securityContext:
+    enabled: true
+  podSecurityContext: {}
+
+  # ── Service Account ──
+  serviceAccount:
+    enabled: true
+    name: ""
+    annotations: {}
+
+  # ── Autoscaling ──
+  autoscaling:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+
+  # ── PodDisruptionBudget ──
+  podDisruptionBudget:
+    enabled: false
+    minAvailable: 1
+
+  # ── Network Policy ──
+  networkPolicy:
+    enabled: false
+
+  # ── Affinity / Tolerations / NodeSelector ──
+  affinity: {}
+  tolerations: []
+  nodeSelector: {}
+
+  # ── Metrics ──
+  metrics:
+    enabled: true
+    port: 44180
+    serviceMonitor:
+      enabled: false
+
+  # ── Extra ──
+  extraEnv: []
+  extraVolumes: []
+  extraVolumeMounts: []
+  extraArgs: {}
+  podAnnotations: {}
+  podLabels: {}
+  customLabels: {}

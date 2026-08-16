@@ -1,0 +1,10 @@
+apiVersion: v2
+name: oauth2-proxy
+description: OAuth2-Proxy - Authentication gateway with multi-provider support
+type: application
+version: 1.0.0
+appVersion: 7.15.3
+dependencies:
+  - name: oauth2-proxy
+    version: "10.7.0"
+    repository: https://oauth2-proxy.github.io/manifests

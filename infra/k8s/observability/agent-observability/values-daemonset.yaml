@@ -332,10 +332,10 @@ otel-daemonset:
       extensions: [health_check, file_storage]
       pipelines:
         # Logs: file_log → enrich → batch → gateway
-        logs:
-          receivers: [file_log, otlp]
-          processors: [memory_limiter, k8s_attributes, resource, batch]
-          exporters: [debug]
+        # logs:
+        #   receivers: [file_log, otlp]
+        #   processors: [memory_limiter, k8s_attributes, resource, batch]
+        #   exporters: [debug]
 
         # Metrics: host_metrics (node) + kubelet_stats (container/pod) + prometheus (ztunnel) + OTLP from app pods → enrich → batch → gateway
         metrics:
@@ -344,10 +344,10 @@ otel-daemonset:
           exporters: [otlp_grpc/gateway, debug]
 
         # Traces: OTLP from app pods → enrich → batch → gateway
-        traces:
-          receivers: [otlp]
-          processors: [memory_limiter, k8s_attributes, resource, batch]
-          exporters: [debug]
+        #traces:
+        #  receivers: [otlp]
+        #  processors: [memory_limiter, k8s_attributes, resource, batch]
+        #  exporters: [debug]
 
   # -- Expose KUBE_NODE_NAME and KUBE_NODE_IP env vars for k8sattributes + kubeletstats
   extraEnvs:

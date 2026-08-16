@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: authentication-prod
+  namespace: argocd
+spec:
+  generators:
+    - list:
+        elements:
+          - component: authelia
+          - component: oauth2-proxy
+  template:
+    metadata:
+      name: "auth-prod-{{component}}"
+      labels:
+        app.kubernetes.io/part-of: authentication
+        environment: production
+    spec:
+      project: default
+      source:
+        repoURL: https://github.com/feriva22/Centralized-Observability-Platform
+        targetRevision: HEAD
+        path: "infra/k8s/authentication/{{component}}"
+        helm:
+          valueFiles:
+            - values.yaml
+            - values-prod.yaml
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: authentication
+      syncPolicy:
+        syncOptions:
+          - CreateNamespace=true

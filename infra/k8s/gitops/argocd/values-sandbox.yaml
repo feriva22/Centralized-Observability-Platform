@@ -7,6 +7,16 @@ argo-cd:
     params:
       server.insecure: true
 
+    cm:
+      url: https://argocd-sandbox.your-domain.com
+      oidc.config: |
+        name: Authelia
+        issuer: https://auth.sandbox.example.com
+        clientID: argocd
+        clientSecret: ""
+        requestedScopes: ["openid", "profile", "email", "groups"]
+        requestedIDTokenClaims: {"groups": {"essential": true}}
+
   server:
     replicas: 1
     resources:

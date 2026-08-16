@@ -1,0 +1,65 @@
+environment: sandbox
+
+oauth2-proxy:
+  replicaCount: 1
+
+  # ── Alpha Config: Single provider (Authelia) ──
+  alphaConfig:
+    enabled: true
+    configData:
+      providers:
+        - id: authelia
+          provider: oidc
+          client_id: oauth2-proxy
+          client_secret: ""
+          oidc_issuer_url: https://auth.sandbox.example.com
+          email_domains:
+            - "*"
+          scope: "openid profile email groups"
+          allowed_groups: []
+      upstreamConfig:
+        upstreams:
+          - id: backend
+            path: /
+            uri: http://grafana.observability.svc.cluster.local:80
+
+  # ── Legacy config ──
+  config:
+    clientID: "oauth2-proxy"
+    clientSecret: ""
+    cookieSecret: ""
+    cookieName: "_oauth2_proxy"
+    emailDomains:
+      - "*"
+
+  # ── Ingress ──
+  ingress:
+    enabled: true
+    className: ""
+    path: /oauth2
+    pathType: Prefix
+    hosts:
+      - auth.sandbox.example.com
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-staging
+    tls:
+      - secretName: oauth2-proxy-tls-sandbox
+        hosts:
+          - auth.sandbox.example.com
+
+  # ── Session (cookie-based untuk sandbox) ──
+  sessionStorage:
+    type: cookie
+
+  # ── Resource minimal ──
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 200m
+      memory: 128Mi
+
+  # ── Metrics ──
+  metrics:
+    enabled: false

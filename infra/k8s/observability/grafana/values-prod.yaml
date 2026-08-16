@@ -19,5 +19,36 @@ grafana:
   grafana.ini:
     auth.anonymous:
       enabled: false
+    auth.proxy:
+      enabled: true
+      header_name: X-Forwarded-User
+      header_property: username
+      auto_sign_up: true
+      sync_ttl: 120
+      whitelist: 127.0.0.0/8, 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16
+      headers: "Email:X-Forwarded-Email Groups:X-Forwarded-Groups"
     server:
+
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: nginx
+      nginx.ingress.kubernetes.io/auth-url: "http://oauth2-proxy.authentication.svc.cluster.local:4180/oauth2/auth"
+      nginx.ingress.kubernetes.io/auth-signin: "https://auth.example.com/oauth2/start?rd=$scheme://$host$request_uri"
+      nginx.ingress.kubernetes.io/auth-response-headers: "X-Forwarded-User, X-Forwarded-Email, X-Forwarded-Groups"
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+    hosts:
+      - grafana.your-domain.com
+    path: /
+    pathType: Prefix
+    tls:
+      - secretName: grafana-tls
+        hosts:
+          - grafana.your-domain.com
       root_url: "https://grafana.your-domain.com"
+      enable_gzip: true
+    security:
+      disable_gravatar: true
+    users:
+      auto_assign_org: true
+      auto_assign_org_role: Viewer

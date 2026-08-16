@@ -1,0 +1,184 @@
+environment: production
+
+oauth2-proxy:
+  replicaCount: 2
+
+  # ── Alpha Config: Multi-provider ──
+  alphaConfig:
+    enabled: true
+    configData:
+      # PROVIDER 1: Authelia untuk local user
+      # PROVIDER 2: External IDP (Azure AD / Okta)
+      #             untuk user @internal-company.com
+      providers:
+        - id: authelia
+          provider: oidc
+          client_id: oauth2-proxy
+          client_secret: ""
+          oidc_issuer_url: https://auth.example.com
+          email_domains:
+            - "*"
+          scope: "openid profile email groups"
+          allowed_groups: []
+
+        - id: external
+          provider: oidc
+          client_id: ""
+          client_secret: ""
+          oidc_issuer_url: ""  # e.g. https://login.microsoftonline.com/TENANT_ID/v2.0
+          email_domains:
+            - internal-company.com
+          scope: "openid profile email"
+          allowed_groups: []
+
+      # ── Upstream Applications ──
+      # Daftar aplikasi yang dilindungi OAuth2-Proxy
+      upstreamConfig:
+        upstreams:
+          - id: grafana
+            path: /
+            uri: http://grafana.observability.svc.cluster.local:80
+
+      # ── Request Logging ──
+      requestLogging:
+        headers: true
+
+    # ── Server config ──
+    serverConfigData:
+      BindAddress: "0.0.0.0:4180"
+      SecureBindAddress: ""
+      MetricsBindAddress: "0.0.0.0:44180"
+
+  # ── Legacy config (minimal, forceLegacyConfig=false) ──
+  config:
+    clientID: "oauth2-proxy"
+    clientSecret: ""
+    cookieSecret: ""
+    cookieName: "_oauth2_proxy"
+    emailDomains:
+      - "*"
+    forceLegacyConfig: false
+
+  # ── Ingress ──
+  ingress:
+    enabled: true
+    className: nginx
+    path: /oauth2
+    pathType: Prefix
+    hosts:
+      - auth.example.com
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-prod
+      nginx.ingress.kubernetes.io/proxy-buffer-size: "8k"
+    tls:
+      - secretName: oauth2-proxy-tls-prod
+        hosts:
+          - auth.example.com
+
+  # ── Service ──
+  service:
+    type: ClusterIP
+    portNumber: 80
+    appProtocol: http
+
+  # ── Session Storage (Redis untuk production) ──
+  sessionStorage:
+    type: redis
+    redis:
+      clientType: standalone
+      standalone:
+        connectionUrl: redis://oauth2-proxy-redis.authentication.svc.cluster.local:6379
+      password: ""
+
+  # ── Redis subchart (deploy Redis dalam namespace) ──
+  redis-ha:
+    enabled: true
+    nameOverride: oauth2-proxy-redis
+    persistentVolume:
+      enabled: true
+      size: 1Gi
+    replicas:
+      sentinel: 0
+      server: 1
+    auth:
+      enabled: false
+
+  # ── Resource ──
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+
+  # ── Autoscaling ──
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 5
+    targetCPUUtilizationPercentage: 80
+
+  # ── PodDisruptionBudget ──
+  podDisruptionBudget:
+    enabled: true
+    minAvailable: 1
+
+  # ── Probes ──
+  livenessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    timeoutSeconds: 3
+
+  readinessProbe:
+    enabled: true
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    timeoutSeconds: 3
+
+  # ── Security ──
+  securityContext:
+    enabled: true
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    runAsGroup: 1001
+    fsGroup: 1001
+
+  # ── Service Account ──
+  serviceAccount:
+    enabled: true
+    name: oauth2-proxy
+    annotations: {}
+
+  # ── Metrics & ServiceMonitor ──
+  metrics:
+    enabled: true
+    port: 44180
+    serviceMonitor:
+      enabled: true
+      interval: 30s
+      scrapeTimeout: 10s
+
+  # ── Network Policy ──
+  networkPolicy:
+    enabled: true
+    ingress:
+      - from:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: nginx-ingress
+    egress:
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: authentication
+      - to:
+          - namespaceSelector:
+              matchLabels:
+                kubernetes.io/metadata.name: observability
+
+  # ── Pod extra annotations ──
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "44180"

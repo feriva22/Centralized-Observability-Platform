@@ -16,13 +16,13 @@ otel-gateway:
         config:
           scrape_configs:
             # --- Mimir (nginx gateway /metrics) ---
-            - job_name: mimir
-              scrape_interval: 30s
-              metrics_path: /metrics
-              static_configs:
-                - targets:
-                    - obs-sandbox-mimir-nginx.observability.svc.cluster.local:80
-
+            #- job_name: mimir
+            #  scrape_interval: 30s
+            #  metrics_path: /metrics
+            #  static_configs:
+            #    - targets:
+            #        - obs-sandbox-mimir-nginx.observability.svc.cluster.local:80
+#
             # --- Mimir internal components ---
             - job_name: mimir-components
               scrape_interval: 30s
@@ -34,67 +34,67 @@ otel-gateway:
                     - obs-sandbox-mimir-querier.observability.svc.cluster.local:8080
                     - obs-sandbox-mimir-store-gateway.observability.svc.cluster.local:8080
                     - obs-sandbox-mimir-compactor.observability.svc.cluster.local:8080
-
-            # --- Tempo ---
-            - job_name: tempo
-              scrape_interval: 30s
-              static_configs:
-                - targets:
-                    - obs-sandbox-tempo.observability.svc.cluster.local:3100
-
-            # --- Loki ---
-            - job_name: loki
-              scrape_interval: 30s
-              static_configs:
-                - targets:
-                    - obs-sandbox-loki.observability.svc.cluster.local:3100
-
-            # --- Grafana ---
-            - job_name: grafana
-              scrape_interval: 30s
-              static_configs:
-                - targets:
-                    - obs-sandbox-grafana.observability.svc.cluster.local:3000
-
-            # --- MinIO ---
-            - job_name: minio
-              scrape_interval: 30s
-              metrics_path: /minio/v2/metrics/cluster
-              static_configs:
-                - targets:
-                    - obs-sandbox-minio.observability.svc.cluster.local:9000
-
-            # --- kafka-native ---
-            - job_name: kafka
-              scrape_interval: 30s
-              static_configs:
-                - targets:
-                    - kafka-native.observability.svc.cluster.local:9308
-
-            # --- Istio control plane (istiod) ---
-            - job_name: istiod
-              scrape_interval: 30s
-              static_configs:
-                - targets:
-                    - istiod.istio-system.svc.cluster.local:15014
-
-            # --- waypoint proxies (ambient mesh L7 Envoy proxy, if any) ---
-            # Only active for namespaces with waypoint injection.
-            # Produces istio_requests_total, istio_request_duration_milliseconds, etc.
-            - job_name: waypoint
-              scrape_interval: 30s
-              metrics_path: /stats/prometheus
-              kubernetes_sd_configs:
-                - role: pod
-              relabel_configs:
-                - source_labels: [__meta_kubernetes_pod_label_gateway_networking_k8s_io_gateway_name]
-                  regex: ".+"
-                  action: keep
-                - source_labels: [__address__]
-                  action: replace
-                  regex: ([^:]+)(?::\d+)?
-                  replacement: $1:15090
-                  target_label: __address__
+#
+            ## --- Tempo ---
+            #- job_name: tempo
+            #  scrape_interval: 30s
+            #  static_configs:
+            #    - targets:
+            #        - obs-sandbox-tempo.observability.svc.cluster.local:3100
+#
+            ## --- Loki ---
+            #- job_name: loki
+            #  scrape_interval: 30s
+            #  static_configs:
+            #    - targets:
+            #        - obs-sandbox-loki.observability.svc.cluster.local:3100
+#
+            ## --- Grafana ---
+            #- job_name: grafana
+            #  scrape_interval: 30s
+            #  static_configs:
+            #    - targets:
+            #        - obs-sandbox-grafana.observability.svc.cluster.local:3000
+#
+            ## --- MinIO ---
+            #- job_name: minio
+            #  scrape_interval: 30s
+            #  metrics_path: /minio/v2/metrics/cluster
+            #  static_configs:
+            #    - targets:
+            #        - obs-sandbox-minio.observability.svc.cluster.local:9000
+#
+            ## --- kafka-native ---
+            #- job_name: kafka
+            #  scrape_interval: 30s
+            #  static_configs:
+            #    - targets:
+            #        - kafka-native.observability.svc.cluster.local:9308
+#
+            ## --- Istio control plane (istiod) ---
+            #- job_name: istiod
+            #  scrape_interval: 30s
+            #  static_configs:
+            #    - targets:
+            #        - istiod.istio-system.svc.cluster.local:15014
+#
+            ## --- waypoint proxies (ambient mesh L7 Envoy proxy, if any) ---
+            ## Only active for namespaces with waypoint injection.
+            ## Produces istio_requests_total, istio_request_duration_milliseconds, etc.
+            #- job_name: waypoint
+            #  scrape_interval: 30s
+            #  metrics_path: /stats/prometheus
+            #  kubernetes_sd_configs:
+            #    - role: pod
+            #  relabel_configs:
+            #    - source_labels: [__meta_kubernetes_pod_label_gateway_networking_k8s_io_gateway_name]
+            #      regex: ".+"
+            #      action: keep
+            #    - source_labels: [__address__]
+            #      action: replace
+            #      regex: ([^:]+)(?::\d+)?
+            #      replacement: $1:15090
+            #      target_label: __address__
 
     service:
       pipelines:
